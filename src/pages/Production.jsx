@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Factory, Download, Package } from "lucide-react";
+import { Calendar, Factory, Download, Package, Cake } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function Production() {
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -80,6 +82,12 @@ export default function Production() {
             </h1>
             <p className="text-gray-600">Planifiez votre production</p>
           </div>
+          <Link to={createPageUrl("CatalogProducts")}>
+            <Button className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">
+              <Cake className="w-4 h-4 mr-2" />
+              Catalogue produits
+            </Button>
+          </Link>
         </div>
 
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">

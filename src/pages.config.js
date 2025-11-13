@@ -4,6 +4,7 @@ import Production from './pages/Production';
 import AdminProducts from './pages/AdminProducts';
 import AdminCategories from './pages/AdminCategories';
 import AdminShops from './pages/AdminShops';
+import CatalogProducts from './pages/CatalogProducts';
 import Layout from './Layout.jsx';
 
 
@@ -14,6 +15,7 @@ export const PAGES = {
     "AdminProducts": AdminProducts,
     "AdminCategories": AdminCategories,
     "AdminShops": AdminShops,
+    "CatalogProducts": CatalogProducts,
 }
 
 export const pagesConfig = {

@@ -44,13 +44,14 @@ export default function Layout({ children, currentPageName }) {
       { title: "Commandes boutique", url: createPageUrl("OrdersList"), icon: Store }
     ],
     production: [
-      { title: "Production", url: createPageUrl("Production"), icon: Factory }
+      { title: "Production", url: createPageUrl("Production"), icon: Factory },
+      { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: Cake }
     ],
     admin: [
       { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
       { title: "Commandes", url: createPageUrl("OrdersList"), icon: Store },
       { title: "Production", url: createPageUrl("Production"), icon: Factory },
-      { title: "Produits", url: createPageUrl("AdminProducts"), icon: Cake },
+      { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: Cake },
       { title: "Catégories", url: createPageUrl("AdminCategories"), icon: Settings },
       { title: "Boutiques", url: createPageUrl("AdminShops"), icon: Store }
     ]
