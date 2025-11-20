@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Calendar, Store, Eye, Download } from "lucide-react";
+import { Search, Calendar, Store, Eye, Download, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -53,8 +54,32 @@ export default function OrdersList() {
     return matchesSearch && matchesShop && matchesDate;
   });
 
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (orderId) => {
+      const lines = await base44.entities.OrderLine.filter({ order_id: orderId });
+      await Promise.all(lines.map(line => base44.entities.OrderLine.delete(line.id)));
+      await base44.entities.Order.delete(orderId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      setSelectedOrder(null);
+      toast.success("Commande supprimée");
+    },
+    onError: () => toast.error("Erreur lors de la suppression")
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }) => base44.entities.Order.update(id, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast.success("Statut mis à jour");
+    },
+    onError: () => toast.error("Erreur lors de la mise à jour")
+  });
+
   const handleViewDetails = async (order) => {
     setSelectedOrder(order);
+    setTempStatus(order.status || 'en_cours');
     const lines = await base44.entities.OrderLine.filter({ order_id: order.id });
     setOrderLines(lines);
   };
@@ -248,8 +273,20 @@ export default function OrdersList() {
         <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-2xl">
-                Détails de la commande {selectedOrder?.order_number}
+              <DialogTitle className="text-2xl flex items-center justify-between">
+                <span>Détails de la commande {selectedOrder?.order_number}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    if (confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) {
+                      deleteOrderMutation.mutate(selectedOrder.id);
+                    }
+                  }}
+                  className="text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </Button>
               </DialogTitle>
             </DialogHeader>
             
@@ -269,7 +306,26 @@ export default function OrdersList() {
                     <div className="space-y-1">
                       <p><span className="font-medium">Boutique :</span> {shops.find(s => s.id === selectedOrder.shop_id)?.name}</p>
                       <p><span className="font-medium">Date :</span> {format(new Date(selectedOrder.pickup_date), 'dd MMMM yyyy', { locale: fr })}</p>
-                      <p><span className="font-medium">Statut :</span> <Badge className={getStatusColor(selectedOrder.status)}>{getStatusLabel(selectedOrder.status)}</Badge></p>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Statut :</span>
+                        <Select
+                          value={tempStatus}
+                          onValueChange={(value) => {
+                            setTempStatus(value);
+                            updateStatusMutation.mutate({ id: selectedOrder.id, status: value });
+                          }}
+                        >
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="en_cours">En cours</SelectItem>
+                            <SelectItem value="prete">Prête</SelectItem>
+                            <SelectItem value="retiree">Retirée</SelectItem>
+                            <SelectItem value="annulee">Annulée</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 </div>

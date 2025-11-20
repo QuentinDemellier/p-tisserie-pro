@@ -5,7 +5,8 @@ import AdminProducts from './pages/AdminProducts';
 import AdminCategories from './pages/AdminCategories';
 import AdminShops from './pages/AdminShops';
 import CatalogProducts from './pages/CatalogProducts';
-import Layout from './Layout.jsx';
+import Admin from './pages/Admin';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -16,10 +17,11 @@ export const PAGES = {
     "AdminCategories": AdminCategories,
     "AdminShops": AdminShops,
     "CatalogProducts": CatalogProducts,
+    "Admin": Admin,
 }
 
 export const pagesConfig = {
     mainPage: "NewOrder",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };

@@ -52,8 +52,7 @@ export default function Layout({ children, currentPageName }) {
       { title: "Commandes", url: createPageUrl("OrdersList"), icon: Store },
       { title: "Production", url: createPageUrl("Production"), icon: Factory },
       { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: Cake },
-      { title: "Catégories", url: createPageUrl("AdminCategories"), icon: Settings },
-      { title: "Boutiques", url: createPageUrl("AdminShops"), icon: Store }
+      { title: "Administration", url: createPageUrl("Admin"), icon: Settings }
     ]
   };
 
