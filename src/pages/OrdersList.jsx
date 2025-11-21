@@ -22,6 +22,7 @@ export default function OrdersList() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderLines, setOrderLines] = useState([]);
+  const [statusHistory, setStatusHistory] = useState([]);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -71,9 +72,19 @@ export default function OrdersList() {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }) => base44.entities.Order.update(id, { status }),
+    mutationFn: async ({ id, status, oldStatus }) => {
+      await base44.entities.Order.update(id, { status });
+      const user = await base44.auth.me();
+      await base44.entities.OrderStatusHistory.create({
+        order_id: id,
+        old_status: oldStatus,
+        new_status: status,
+        changed_by: user.email
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderHistory'] });
       toast.success("Statut mis à jour");
     },
     onError: () => toast.error("Erreur lors de la mise à jour")
@@ -84,6 +95,8 @@ export default function OrdersList() {
     setTempStatus(order.status || 'en_cours');
     const lines = await base44.entities.OrderLine.filter({ order_id: order.id });
     setOrderLines(lines);
+    const history = await base44.entities.OrderStatusHistory.filter({ order_id: order.id }, '-created_date');
+    setStatusHistory(history);
   };
 
   const getStatusColor = (status) => {
@@ -313,8 +326,9 @@ export default function OrdersList() {
                         <Select
                           value={tempStatus}
                           onValueChange={(value) => {
+                            const oldStatus = tempStatus;
                             setTempStatus(value);
-                            updateStatusMutation.mutate({ id: selectedOrder.id, status: value });
+                            updateStatusMutation.mutate({ id: selectedOrder.id, status: value, oldStatus });
                           }}
                         >
                           <SelectTrigger className="w-40">
@@ -362,6 +376,33 @@ export default function OrdersList() {
                     {selectedOrder.total_amount.toFixed(2)} €
                   </span>
                 </div>
+
+                {statusHistory.length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-[#DFD3C3]/30">
+                    <h3 className="font-semibold text-sm text-gray-500 mb-3">Historique des changements de statut</h3>
+                    <div className="space-y-2">
+                      {statusHistory.map(entry => (
+                        <div key={entry.id} className="flex items-center justify-between p-3 bg-[#F8EDE3]/30 rounded-lg text-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className={getStatusColor(entry.old_status)}>
+                                {getStatusLabel(entry.old_status)}
+                              </Badge>
+                              <span className="text-gray-400">→</span>
+                              <Badge variant="outline" className={getStatusColor(entry.new_status)}>
+                                {getStatusLabel(entry.new_status)}
+                              </Badge>
+                            </div>
+                            <span className="text-gray-600">par {entry.changed_by}</span>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {format(new Date(entry.created_date), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>
