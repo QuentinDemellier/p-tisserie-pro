@@ -12,7 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Tag, Store, MapPin, Image as ImageIcon, Settings } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, Store, MapPin, Image as ImageIcon, Settings, Users, History, Key, ShoppingBag } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 
 export default function Admin() {
@@ -49,6 +51,16 @@ export default function Admin() {
     active: true
   });
 
+  // User states
+  const [editingUser, setEditingUser] = useState(null);
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [userFormData, setUserFormData] = useState({
+    user_role: "vendeur",
+    assigned_shop_id: ""
+  });
+  const [selectedUserOrders, setSelectedUserOrders] = useState(null);
+  const [userOrdersDialogOpen, setUserOrdersDialogOpen] = useState(false);
+
   // Queries
   const { data: products = [], isLoading: loadingProducts } = useQuery({
     queryKey: ['products'],
@@ -63,6 +75,16 @@ export default function Admin() {
   const { data: shops = [], isLoading: loadingShops } = useQuery({
     queryKey: ['shops'],
     queryFn: () => base44.entities.Shop.list()
+  });
+
+  const { data: users = [], isLoading: loadingUsers } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list('-created_date')
+  });
+
+  const { data: orders = [] } = useQuery({
+    queryKey: ['orders'],
+    queryFn: () => base44.entities.Order.list('-created_date')
   });
 
   // Product mutations
@@ -227,6 +249,57 @@ export default function Admin() {
     }
   };
 
+  // User mutations
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success("Utilisateur mis à jour");
+      setUserDialogOpen(false);
+    },
+    onError: () => toast.error("Erreur lors de la mise à jour")
+  });
+
+  // User handlers
+  const handleOpenUserDialog = (user) => {
+    setEditingUser(user);
+    setUserFormData({
+      user_role: user.user_role || "vendeur",
+      assigned_shop_id: user.assigned_shop_id || ""
+    });
+    setUserDialogOpen(true);
+  };
+
+  const handleUserSubmit = () => {
+    updateUserMutation.mutate({ id: editingUser.id, data: userFormData });
+  };
+
+  const handleViewUserOrders = async (user) => {
+    const userOrders = orders.filter(order => order.created_by === user.email);
+    setSelectedUserOrders({ user, orders: userOrders });
+    setUserOrdersDialogOpen(true);
+  };
+
+  const getRoleLabel = (role) => {
+    const labels = {
+      vendeur: "Vendeur",
+      boutique: "Boutique",
+      production: "Production",
+      admin: "Administrateur"
+    };
+    return labels[role] || role;
+  };
+
+  const getRoleColor = (role) => {
+    const colors = {
+      vendeur: "bg-blue-100 text-blue-800",
+      boutique: "bg-purple-100 text-purple-800",
+      production: "bg-orange-100 text-orange-800",
+      admin: "bg-red-100 text-red-800"
+    };
+    return colors[role] || "bg-gray-100 text-gray-800";
+  };
+
   return (
     <div className="p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -235,14 +308,15 @@ export default function Admin() {
             <Settings className="w-8 h-8 text-[#C98F75]" />
             Administration
           </h1>
-          <p className="text-gray-600">Gérez les produits, catégories et boutiques</p>
+          <p className="text-gray-600">Gérez les produits, catégories, boutiques et utilisateurs</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="products" className="text-base">Produits</TabsTrigger>
             <TabsTrigger value="categories" className="text-base">Catégories</TabsTrigger>
             <TabsTrigger value="shops" className="text-base">Boutiques</TabsTrigger>
+            <TabsTrigger value="users" className="text-base">Utilisateurs</TabsTrigger>
           </TabsList>
 
           {/* PRODUCTS TAB */}
@@ -414,6 +488,96 @@ export default function Admin() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* USERS TAB */}
+          <TabsContent value="users">
+            <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90">
+              <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
+                <CardTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-[#C98F75]" />Liste des utilisateurs ({users.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {loadingUsers ? (
+                  <div className="p-6 space-y-4">{Array(5).fill(0).map((_, i) => (<div key={i} className="h-20 bg-[#DFD3C3]/20 animate-pulse rounded" />))}</div>
+                ) : users.length === 0 ? (
+                  <div className="p-12 text-center text-gray-500"><Users className="w-12 h-12 mx-auto mb-4 text-gray-300" /><p>Aucun utilisateur</p></div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-[#F8EDE3]/50">
+                          <TableHead>Utilisateur</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Rôle</TableHead>
+                          <TableHead>Boutique assignée</TableHead>
+                          <TableHead>Commandes</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {users.map(user => {
+                          const assignedShop = shops.find(s => s.id === user.assigned_shop_id);
+                          const userOrdersCount = orders.filter(o => o.created_by === user.email).length;
+                          return (
+                            <TableRow key={user.id} className="hover:bg-[#F8EDE3]/20">
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E0A890] to-[#C98F75] flex items-center justify-center">
+                                    <span className="text-white font-semibold text-sm">
+                                      {user.full_name?.[0]?.toUpperCase() || 'U'}
+                                    </span>
+                                  </div>
+                                  <span className="font-semibold">{user.full_name || 'Utilisateur'}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-gray-600">{user.email}</TableCell>
+                              <TableCell>
+                                <Badge className={getRoleColor(user.user_role || 'vendeur')}>
+                                  {getRoleLabel(user.user_role || 'vendeur')}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {assignedShop ? (
+                                  <Badge variant="outline" className="border-[#E0A890] text-[#C98F75]">
+                                    {assignedShop.name}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-gray-400 text-sm">Non assigné</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewUserOrders(user)}
+                                  disabled={userOrdersCount === 0}
+                                  className="hover:bg-[#E0A890]/10"
+                                >
+                                  <ShoppingBag className="w-4 h-4 mr-2" />
+                                  {userOrdersCount}
+                                </Button>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex gap-2 justify-end">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleOpenUserDialog(user)}
+                                    className="hover:bg-[#E0A890]/10"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
         {/* Product Dialog */}
@@ -479,6 +643,163 @@ export default function Admin() {
                 <Button onClick={handleShopSubmit} className="flex-1 bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">{editingShop ? "Mettre à jour" : "Créer"}</Button>
               </div>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* User Dialog */}
+        <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Modifier l'utilisateur</DialogTitle>
+            </DialogHeader>
+            {editingUser && (
+              <div className="space-y-4 py-4">
+                <div className="p-4 bg-[#F8EDE3]/30 rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#E0A890] to-[#C98F75] flex items-center justify-center">
+                      <span className="text-white font-semibold">
+                        {editingUser.full_name?.[0]?.toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-semibold">{editingUser.full_name}</p>
+                      <p className="text-sm text-gray-600">{editingUser.email}</p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Inscrit le {format(new Date(editingUser.created_date), 'dd MMMM yyyy', { locale: fr })}
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Rôle *</Label>
+                  <Select value={userFormData.user_role} onValueChange={(value) => setUserFormData({...userFormData, user_role: value})}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="vendeur">Vendeur</SelectItem>
+                      <SelectItem value="boutique">Boutique</SelectItem>
+                      <SelectItem value="production">Production</SelectItem>
+                      <SelectItem value="admin">Administrateur</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">Détermine les accès de l'utilisateur</p>
+                </div>
+
+                <div>
+                  <Label>Boutique assignée</Label>
+                  <Select 
+                    value={userFormData.assigned_shop_id} 
+                    onValueChange={(value) => setUserFormData({...userFormData, assigned_shop_id: value})}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Aucune boutique assignée" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>Aucune boutique</SelectItem>
+                      {shops.filter(s => s.active !== false).map(shop => (
+                        <SelectItem key={shop.id} value={shop.id}>{shop.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">Pour les rôles "boutique", limite l'accès aux commandes de cette boutique</p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button variant="outline" onClick={() => setUserDialogOpen(false)} className="flex-1">
+                    Annuler
+                  </Button>
+                  <Button 
+                    onClick={handleUserSubmit} 
+                    className="flex-1 bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
+                  >
+                    Mettre à jour
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* User Orders History Dialog */}
+        <Dialog open={userOrdersDialogOpen} onOpenChange={setUserOrdersDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <History className="w-5 h-5 text-[#C98F75]" />
+                Historique des commandes de {selectedUserOrders?.user.full_name}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedUserOrders && (
+              <div className="space-y-4">
+                {selectedUserOrders.orders.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>Aucune commande trouvée</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedUserOrders.orders.map(order => {
+                      const shop = shops.find(s => s.id === order.shop_id);
+                      const getStatusColor = (status) => {
+                        const colors = {
+                          en_cours: "bg-blue-100 text-blue-800",
+                          prete: "bg-green-100 text-green-800",
+                          retiree: "bg-gray-100 text-gray-800",
+                          annulee: "bg-red-100 text-red-800"
+                        };
+                        return colors[status] || colors.en_cours;
+                      };
+                      const getStatusLabel = (status) => {
+                        const labels = {
+                          en_cours: "En cours",
+                          prete: "Prête",
+                          retiree: "Retirée",
+                          annulee: "Annulée"
+                        };
+                        return labels[status] || status;
+                      };
+                      return (
+                        <Card key={order.id} className="border-[#DFD3C3]/30">
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                  <span className="font-mono text-sm font-semibold text-[#C98F75]">
+                                    {order.order_number}
+                                  </span>
+                                  <Badge className={getStatusColor(order.status)}>
+                                    {getStatusLabel(order.status)}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm space-y-1 text-gray-600">
+                                  <p><span className="font-medium">Client:</span> {order.customer_firstname} {order.customer_name}</p>
+                                  <p><span className="font-medium">Boutique:</span> {shop?.name || '-'}</p>
+                                  <p><span className="font-medium">Date de retrait:</span> {format(new Date(order.pickup_date), 'dd MMMM yyyy', { locale: fr })}</p>
+                                  <p className="text-xs text-gray-500">Créée le {format(new Date(order.created_date), 'dd/MM/yyyy à HH:mm', { locale: fr })}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-2xl font-bold text-[#C98F75]">{order.total_amount.toFixed(2)} €</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+                <div className="pt-4 border-t border-[#DFD3C3]/30">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Total des commandes:</span>
+                    <span className="text-2xl font-bold text-[#C98F75]">
+                      {selectedUserOrders.orders.reduce((sum, o) => sum + o.total_amount, 0).toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
