@@ -38,16 +38,20 @@ export default function Layout({ children, currentPageName }) {
 
   const navigationByRole = {
     vendeur: [
+      { title: "Accueil", url: createPageUrl("Home"), icon: Cake },
       { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart }
     ],
     boutique: [
+      { title: "Accueil", url: createPageUrl("Home"), icon: Cake },
       { title: "Commandes boutique", url: createPageUrl("OrdersList"), icon: Store }
     ],
     production: [
+      { title: "Accueil", url: createPageUrl("Home"), icon: Cake },
       { title: "Production", url: createPageUrl("Production"), icon: Factory },
       { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: Cake }
     ],
     admin: [
+      { title: "Accueil", url: createPageUrl("Home"), icon: Cake },
       { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
       { title: "Commandes", url: createPageUrl("OrdersList"), icon: Store },
       { title: "Production", url: createPageUrl("Production"), icon: Factory },
