@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Image as ImageIcon, ArrowLeft, Pause, Play } from "lucide-react";
+import { Plus, Pencil, Trash2, Image as ImageIcon, ArrowLeft, Pause, Play, Search, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +28,13 @@ export default function CatalogProducts() {
     active: true,
     stock_limit: 0
   });
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['products'],
@@ -126,35 +133,163 @@ export default function CatalogProducts() {
     }
   };
 
+  // Filter products
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = filterCategory === "all" || product.category_id === filterCategory;
+    const matchesStatus = filterStatus === "all" || 
+      (filterStatus === "active" && product.active !== false) ||
+      (filterStatus === "inactive" && product.active === false);
+    const matchesMinPrice = !minPrice || product.price >= parseFloat(minPrice);
+    const matchesMaxPrice = !maxPrice || product.price <= parseFloat(maxPrice);
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesMinPrice && matchesMaxPrice;
+  });
+
   const productsByCategory = categories.map(category => ({
     ...category,
-    products: products.filter(p => p.category_id === category.id)
-  }));
+    products: filteredProducts.filter(p => p.category_id === category.id)
+  })).filter(cat => cat.products.length > 0);
 
   return (
     <div className="p-6 md:p-8 bg-gradient-to-br from-[#FBF8F3] to-[#F8EDE3] min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <Button
-              variant="ghost"
-              onClick={() => navigate(createPageUrl("Production"))}
-              className="mb-4 hover:bg-[#E0A890]/10"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Retour à la production
-            </Button>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Catalogue produits</h1>
-            <p className="text-gray-600">Gérez vos produits par catégorie</p>
-          </div>
+        <div className="mb-8">
           <Button
-            onClick={() => handleOpenDialog()}
-            className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white shadow-lg"
+            variant="ghost"
+            onClick={() => navigate(createPageUrl("Production"))}
+            className="mb-4 hover:bg-[#E0A890]/10"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Nouveau produit
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Retour à la production
           </Button>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">Catalogue produits</h1>
+              <p className="text-gray-600">Gérez vos produits par catégorie</p>
+            </div>
+            <Button
+              onClick={() => handleOpenDialog()}
+              className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white shadow-lg"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nouveau produit
+            </Button>
+          </div>
         </div>
+
+        {/* Filters Section */}
+        <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
+          <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Filter className="w-5 h-5 text-[#C98F75]" />
+              Filtres de recherche
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  placeholder="Rechercher un produit par nom..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 text-base border-[#DFD3C3]"
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-1 top-1/2 -translate-y-1/2"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Catégorie</Label>
+                  <Select value={filterCategory} onValueChange={setFilterCategory}>
+                    <SelectTrigger className="border-[#DFD3C3]">
+                      <SelectValue placeholder="Toutes les catégories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes les catégories</SelectItem>
+                      {categories.map(cat => (
+                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Statut</Label>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="border-[#DFD3C3]">
+                      <SelectValue placeholder="Tous les statuts" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les statuts</SelectItem>
+                      <SelectItem value="active">Actifs uniquement</SelectItem>
+                      <SelectItem value="inactive">Inactifs uniquement</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Prix minimum (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    className="border-[#DFD3C3]"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Prix maximum (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="999.99"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    className="border-[#DFD3C3]"
+                  />
+                </div>
+              </div>
+
+              {(searchQuery || filterCategory !== "all" || filterStatus !== "all" || minPrice || maxPrice) && (
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-sm text-gray-600">
+                    {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterCategory("all");
+                      setFilterStatus("all");
+                      setMinPrice("");
+                      setMaxPrice("");
+                    }}
+                    className="border-[#DFD3C3] hover:bg-[#E0A890]/10"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Réinitialiser les filtres
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="space-y-6">
