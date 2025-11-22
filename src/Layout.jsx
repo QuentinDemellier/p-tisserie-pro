@@ -45,25 +45,19 @@ export default function Layout({ children, currentPageName }) {
     vendeur: [
       { title: "Accueil", url: createPageUrl("VendeurHome"), icon: Cake },
       { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
-      { title: "Commandes boutique", url: createPageUrl("OrdersList"), icon: Store }
+      { title: "Toutes les commandes", url: createPageUrl("OrdersList"), icon: Store }
     ],
     boutique: [
       { title: "Accueil", url: createPageUrl("VendeurHome"), icon: Cake },
       { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
-      { title: "Commandes boutique", url: createPageUrl("OrdersList"), icon: Store }
+      { title: "Toutes les commandes", url: createPageUrl("OrdersList"), icon: Store }
     ],
     production: [
-      { title: "Accueil", url: createPageUrl("ProductionHome"), icon: Cake },
       { title: "Planning production", url: createPageUrl("Production"), icon: Factory },
-      { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: Cake },
-      { title: "Préparation livraison", url: createPageUrl("DeliveryPrep"), icon: Store }
+      { title: "Livraison du jour", url: createPageUrl("ProductionHome"), icon: Cake },
+      { title: "Livraison", url: createPageUrl("DeliveryPrep"), icon: Store }
     ],
     admin: [
-      { title: "Accueil", url: createPageUrl("AdminHome"), icon: Cake },
-      { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
-      { title: "Commandes", url: createPageUrl("OrdersList"), icon: Store },
-      { title: "Production", url: createPageUrl("Production"), icon: Factory },
-      { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: Cake },
       { title: "Administration", url: createPageUrl("Admin"), icon: Settings }
     ]
   };
