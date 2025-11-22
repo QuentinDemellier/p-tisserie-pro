@@ -37,7 +37,7 @@ export default function Home() {
       icon: ShoppingCart,
       color: 'from-blue-500 to-blue-600',
       bgColor: 'bg-blue-50',
-      targetPage: 'NewOrder',
+      targetPage: 'VendeurHome',
       requiredRole: ['vendeur', 'boutique'],
       features: ['Nouvelle commande', 'Consultation des commandes', 'Suivi par boutique']
     },

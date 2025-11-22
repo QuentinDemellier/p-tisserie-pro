@@ -4,13 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Truck, Package, CheckCircle2, Download } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Truck, Package, CheckCircle2, Download, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import confetti from "canvas-confetti";
 
 export default function DeliveryPrep() {
-  const today = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [checkedItems, setCheckedItems] = useState({});
 
   const { data: orders = [] } = useQuery({
@@ -28,14 +31,14 @@ export default function DeliveryPrep() {
     queryFn: () => base44.entities.Shop.list()
   });
 
-  const todayOrders = orders.filter(order => 
-    order.pickup_date === today &&
+  const filteredOrders = orders.filter(order => 
+    order.pickup_date === selectedDate &&
     order.status !== 'annulee'
   );
 
   // Regrouper les produits par boutique
   const deliveryList = shops.map(shop => {
-    const shopOrders = todayOrders.filter(o => o.shop_id === shop.id);
+    const shopOrders = filteredOrders.filter(o => o.shop_id === shop.id);
     const products = {};
     
     shopOrders.forEach(order => {
@@ -71,6 +74,12 @@ export default function DeliveryPrep() {
       ...prev,
       [key]: !prev[key]
     }));
+    
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { y: 0.7 }
+    });
   };
 
   const getProgress = (shopId, products) => {
@@ -101,7 +110,7 @@ export default function DeliveryPrep() {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `preparation_livraison_${today}.csv`);
+    link.setAttribute('download', `preparation_livraison_${selectedDate}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -110,24 +119,41 @@ export default function DeliveryPrep() {
   return (
     <div className="p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-              <Truck className="w-8 h-8 text-[#C98F75]" />
-              Préparation livraison
-            </h1>
-            <p className="text-gray-600">
-              Liste des produits à charger pour le {format(new Date(today), 'dd MMMM yyyy', { locale: fr })}
-            </p>
-          </div>
-          <Button
-            onClick={exportDeliveryList}
-            variant="outline"
-            className="border-[#DFD3C3] hover:bg-[#E0A890]/10"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exporter la liste
-          </Button>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+            <Truck className="w-8 h-8 text-[#C98F75]" />
+            Préparation livraison
+          </h1>
+          <p className="text-gray-600 mb-6">Liste des produits à charger</p>
+          
+          <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-4 items-end">
+                <div className="flex-1">
+                  <Label htmlFor="delivery_date" className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-4 h-4" />
+                    Date de livraison
+                  </Label>
+                  <Input
+                    id="delivery_date"
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="border-[#DFD3C3]"
+                  />
+                </div>
+                <Button
+                  onClick={exportDeliveryList}
+                  variant="outline"
+                  className="border-[#DFD3C3] hover:bg-[#E0A890]/10"
+                  disabled={deliveryList.length === 0}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Exporter la liste
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {deliveryList.length === 0 ? (
