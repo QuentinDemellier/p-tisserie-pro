@@ -137,7 +137,7 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               </div>
               <button
-                onClick={() => base44.auth.logout()}
+                onClick={() => base44.auth.logout(createPageUrl("Home"))}
                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-[#C98F75] hover:bg-[#E0A890]/10 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />

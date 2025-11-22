@@ -491,6 +491,12 @@ export default function Admin() {
 
           {/* USERS TAB */}
           <TabsContent value="users">
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note :</strong> Les utilisateurs doivent être invités via le tableau de bord Base44. 
+                Une fois invités, vous pouvez modifier leur rôle et leur boutique assignée ci-dessous.
+              </p>
+            </div>
             <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90">
               <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
                 <CardTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-[#C98F75]" />Liste des utilisateurs ({users.length})</CardTitle>

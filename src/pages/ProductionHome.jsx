@@ -4,14 +4,17 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Factory, TrendingUp, Truck, Calendar, Package } from "lucide-react";
+import { Factory, TrendingUp, Truck, Calendar, Package, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Checkbox } from "@/components/ui/checkbox";
+import confetti from "canvas-confetti";
 
 export default function ProductionHome() {
   const today = new Date().toISOString().split('T')[0];
+  const [checkedItems, setCheckedItems] = React.useState({});
 
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
@@ -57,6 +60,51 @@ export default function ProductionHome() {
       totalAmount
     };
   }).filter(s => s.ordersCount > 0);
+
+  // Delivery preparation data
+  const deliveryList = shops.map(shop => {
+    const shopOrders = todayOrders.filter(o => o.shop_id === shop.id);
+    const products = {};
+    
+    shopOrders.forEach(order => {
+      const lines = orderLines.filter(line => line.order_id === order.id);
+      lines.forEach(line => {
+        const key = line.product_name;
+        if (!products[key]) {
+          products[key] = {
+            name: line.product_name,
+            quantity: 0
+          };
+        }
+        products[key].quantity += line.quantity;
+      });
+    });
+
+    return {
+      shop,
+      products: Object.values(products),
+      totalItems: Object.values(products).reduce((sum, p) => sum + p.quantity, 0)
+    };
+  }).filter(delivery => delivery.products.length > 0);
+
+  const handleToggle = (shopId, productName) => {
+    const key = `${shopId}-${productName}`;
+    setCheckedItems(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { y: 0.7 }
+    });
+  };
+
+  const getProgress = (shopId, products) => {
+    const total = products.length;
+    const checked = products.filter(p => checkedItems[`${shopId}-${p.name}`]).length;
+    return { checked, total, percentage: total > 0 ? (checked / total) * 100 : 0 };
+  };
 
   return (
     <div className="p-6 md:p-8">
@@ -117,9 +165,10 @@ export default function ProductionHome() {
         </div>
 
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="products">Production du jour</TabsTrigger>
             <TabsTrigger value="shops">Par boutique</TabsTrigger>
+            <TabsTrigger value="delivery">Préparation livraison</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products">
@@ -175,6 +224,101 @@ export default function ProductionHome() {
                         </CardContent>
                       </Card>
                     ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="delivery">
+            <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90">
+              <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
+                <CardTitle className="flex items-center gap-2">
+                  <Truck className="w-5 h-5 text-[#C98F75]" />
+                  Chargement des livraisons
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {deliveryList.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 text-lg">Aucune livraison prévue aujourd'hui</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {deliveryList.map(({ shop, products, totalItems }) => {
+                      const progress = getProgress(shop.id, products);
+                      const isComplete = progress.percentage === 100;
+
+                      return (
+                        <Card key={shop.id} className="border-[#DFD3C3]/30">
+                          <CardHeader className={`border-b border-[#DFD3C3]/30 ${isComplete ? 'bg-green-50' : 'bg-[#F8EDE3]/50'}`}>
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 ${isComplete ? 'bg-green-500' : 'bg-gradient-to-br from-[#E0A890] to-[#C98F75]'} rounded-xl flex items-center justify-center`}>
+                                  {isComplete ? (
+                                    <CheckCircle2 className="w-5 h-5 text-white" />
+                                  ) : (
+                                    <Package className="w-5 h-5 text-white" />
+                                  )}
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-lg">{shop.name}</h3>
+                                  <p className="text-xs text-gray-600">{totalItems} articles</p>
+                                </div>
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {progress.checked} / {progress.total} chargés
+                              </div>
+                            </div>
+                            {!isComplete && (
+                              <div className="mt-3">
+                                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-gradient-to-r from-[#E0A890] to-[#C98F75] transition-all duration-300"
+                                    style={{ width: `${progress.percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </CardHeader>
+                          <CardContent className="p-4">
+                            <div className="space-y-2">
+                              {products.map(product => {
+                                const isChecked = checkedItems[`${shop.id}-${product.name}`];
+                                return (
+                                  <div 
+                                    key={product.name}
+                                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                                      isChecked 
+                                        ? 'bg-green-50 border-green-200' 
+                                        : 'bg-white border-[#DFD3C3]/30'
+                                    }`}
+                                  >
+                                    <Checkbox
+                                      id={`${shop.id}-${product.name}`}
+                                      checked={isChecked}
+                                      onCheckedChange={() => handleToggle(shop.id, product.name)}
+                                    />
+                                    <label
+                                      htmlFor={`${shop.id}-${product.name}`}
+                                      className="flex-1 flex justify-between items-center cursor-pointer"
+                                    >
+                                      <span className={`font-medium ${isChecked ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                                        {product.name}
+                                      </span>
+                                      <span className={`font-bold ${isChecked ? 'text-green-600' : 'text-[#C98F75]'}`}>
+                                        {product.quantity}x
+                                      </span>
+                                    </label>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
