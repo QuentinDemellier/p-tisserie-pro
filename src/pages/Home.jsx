@@ -19,33 +19,13 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleAccess = (requiredRole, targetPage) => {
+  const handleAccess = (targetPage) => {
     if (!user) {
       base44.auth.redirectToLogin(createPageUrl(targetPage));
       return;
     }
 
-    const userRole = user.user_role || 'vendeur';
-    
-    // Admin peut tout accéder
-    if (userRole === 'admin') {
-      navigate(createPageUrl(targetPage));
-      return;
-    }
-
-    // Vérifier les permissions par rôle
-    const permissions = {
-      vendeur: ['NewOrder'],
-      boutique: ['NewOrder', 'OrdersList'],
-      production: ['Production', 'CatalogProducts']
-    };
-
-    if (permissions[userRole]?.includes(targetPage)) {
-      navigate(createPageUrl(targetPage));
-    } else {
-      // Rediriger vers login pour changer de compte
-      base44.auth.redirectToLogin(createPageUrl(targetPage));
-    }
+    navigate(createPageUrl(targetPage));
   };
 
   const spaces = [
@@ -53,28 +33,31 @@ export default function Home() {
       id: 'vendeurs',
       title: 'Espace Vendeurs',
       description: 'Créer et gérer les commandes clients',
+      subtitle: 'Connexion avec identifiant boutique',
       icon: ShoppingCart,
       color: 'from-blue-500 to-blue-600',
       bgColor: 'bg-blue-50',
       targetPage: 'NewOrder',
-      requiredRole: ['vendeur', 'boutique', 'admin'],
+      requiredRole: ['vendeur', 'boutique'],
       features: ['Nouvelle commande', 'Consultation des commandes', 'Suivi par boutique']
     },
     {
       id: 'production',
       title: 'Espace Production',
       description: 'Planning de production et gestion du catalogue',
+      subtitle: 'Connexion avec identifiant laboratoire',
       icon: Factory,
       color: 'from-orange-500 to-orange-600',
       bgColor: 'bg-orange-50',
       targetPage: 'Production',
-      requiredRole: ['production', 'admin'],
+      requiredRole: ['production'],
       features: ['Planning de production', 'Gestion du catalogue', 'Suivi des fabrications']
     },
     {
       id: 'admin',
       title: 'Administration',
       description: 'Gestion complète de la pâtisserie',
+      subtitle: 'Connexion administrateur',
       icon: Settings,
       color: 'from-purple-500 to-purple-600',
       bgColor: 'bg-purple-50',
@@ -87,7 +70,7 @@ export default function Home() {
   const hasAccess = (requiredRoles) => {
     if (!user) return false;
     const userRole = user.user_role || 'vendeur';
-    return userRole === 'admin' || requiredRoles.includes(userRole);
+    return requiredRoles.includes(userRole);
   };
 
   if (loading) {
@@ -155,9 +138,13 @@ export default function Home() {
                     <space.icon className="w-8 h-8 text-white" />
                   </div>
                   <CardTitle className="text-2xl mb-2">{space.title}</CardTitle>
-                  <CardDescription className="text-base">
+                  <CardDescription className="text-base mb-2">
                     {space.description}
                   </CardDescription>
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                    <Lock className="w-4 h-4" />
+                    <span className="italic">{space.subtitle}</span>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className={`${space.bgColor} rounded-lg p-4 space-y-2`}>
@@ -179,7 +166,7 @@ export default function Home() {
                   )}
 
                   <Button
-                    onClick={() => handleAccess(space.requiredRole, space.targetPage)}
+                    onClick={() => handleAccess(space.targetPage)}
                     className={`w-full bg-gradient-to-r ${space.color} hover:opacity-90 text-white shadow-lg text-base py-6 group`}
                   >
                     {!user ? (
@@ -195,7 +182,7 @@ export default function Home() {
                     ) : (
                       <>
                         <Lock className="w-5 h-5 mr-2" />
-                        Changer de compte
+                        Connexion requise
                       </>
                     )}
                   </Button>
@@ -220,13 +207,13 @@ export default function Home() {
                 </div>
                 <div className="text-left">
                   <h3 className="font-semibold text-lg text-gray-800 mb-2">
-                    Informations de connexion
+                    Système de connexion par espace
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Chaque boutique dispose de son propre identifiant de connexion pour l'espace vendeurs. 
-                    L'espace production possède également son propre accès dédié. 
-                    Les administrateurs ont accès à tous les espaces.
-                  </p>
+                  <div className="text-sm text-gray-600 space-y-2">
+                    <p>• <strong>Vendeurs :</strong> Chaque boutique dispose de son propre identifiant de connexion</p>
+                    <p>• <strong>Production :</strong> Un identifiant unique pour accéder au laboratoire</p>
+                    <p>• <strong>Administration :</strong> Accès complet à tous les espaces</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
