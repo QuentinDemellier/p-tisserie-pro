@@ -55,7 +55,8 @@ export default function Layout({ children, currentPageName }) {
     production: [
       { title: "Accueil", url: createPageUrl("ProductionHome"), icon: Cake },
       { title: "Planning production", url: createPageUrl("Production"), icon: Factory },
-      { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: Cake }
+      { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: Cake },
+      { title: "Préparation livraison", url: createPageUrl("DeliveryPrep"), icon: Store }
     ],
     admin: [
       { title: "Accueil", url: createPageUrl("AdminHome"), icon: Cake },

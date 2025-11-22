@@ -4,17 +4,21 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Factory, TrendingUp, Truck, Calendar, Package, CheckCircle2 } from "lucide-react";
+import { Factory, TrendingUp, Truck, Calendar, Package, CheckCircle2, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import confetti from "canvas-confetti";
 
 export default function ProductionHome() {
   const today = new Date().toISOString().split('T')[0];
   const [checkedItems, setCheckedItems] = React.useState({});
+  const [selectedShop, setSelectedShop] = React.useState(null);
+  const [shopOrdersDialogOpen, setShopOrdersDialogOpen] = React.useState(false);
 
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
@@ -57,9 +61,35 @@ export default function ProductionHome() {
     return {
       ...shop,
       ordersCount: shopOrders.length,
+      orders: shopOrders,
       totalAmount
     };
   }).filter(s => s.ordersCount > 0);
+
+  const handleViewShopOrders = (shop) => {
+    setSelectedShop(shop);
+    setShopOrdersDialogOpen(true);
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      en_cours: "bg-blue-100 text-blue-800",
+      prete: "bg-green-100 text-green-800",
+      retiree: "bg-gray-100 text-gray-800",
+      annulee: "bg-red-100 text-red-800"
+    };
+    return colors[status] || colors.en_cours;
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      en_cours: "En cours",
+      prete: "Prête",
+      retiree: "Retirée",
+      annulee: "Annulée"
+    };
+    return labels[status] || status;
+  };
 
   // Delivery preparation data
   const deliveryList = shops.map(shop => {
@@ -209,10 +239,16 @@ export default function ProductionHome() {
                       <Card key={shop.id} className="border-[#DFD3C3]/30 hover:shadow-md transition-shadow">
                         <CardContent className="p-4">
                           <div className="flex justify-between items-center">
-                            <div>
-                              <h3 className="font-semibold text-lg text-gray-800">{shop.name}</h3>
+                            <button 
+                              onClick={() => handleViewShopOrders(shop)}
+                              className="text-left hover:opacity-70 transition-opacity flex-1"
+                            >
+                              <h3 className="font-semibold text-lg text-gray-800 hover:text-[#C98F75] transition-colors flex items-center gap-2">
+                                {shop.name}
+                                <Eye className="w-4 h-4" />
+                              </h3>
                               <p className="text-sm text-gray-600">{shop.location}</p>
-                            </div>
+                            </button>
                             <div className="text-right">
                               <p className="text-2xl font-bold text-[#C98F75]">{shop.ordersCount}</p>
                               <p className="text-sm text-gray-600">commandes</p>
@@ -325,6 +361,79 @@ export default function ProductionHome() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Shop Orders Dialog */}
+        <Dialog open={shopOrdersDialogOpen} onOpenChange={setShopOrdersDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">
+                Commandes de {selectedShop?.name}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedShop && (
+              <div className="space-y-4">
+                {selectedShop.orders.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>Aucune commande trouvée</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedShop.orders.map(order => {
+                      const lines = orderLines.filter(line => line.order_id === order.id);
+                      return (
+                        <Card key={order.id} className="border-[#DFD3C3]/30">
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                  <span className="font-mono text-sm font-semibold text-[#C98F75]">
+                                    {order.order_number}
+                                  </span>
+                                  <Badge className={getStatusColor(order.status)}>
+                                    {getStatusLabel(order.status)}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-gray-700">
+                                  <span className="font-medium">Client :</span> {order.customer_firstname} {order.customer_name}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  <span className="font-medium">Téléphone :</span> {order.customer_phone}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  <span className="font-medium">Retrait :</span> {format(new Date(order.pickup_date), 'dd MMMM yyyy', { locale: fr })}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-2xl font-bold text-[#C98F75]">{order.total_amount.toFixed(2)} €</p>
+                              </div>
+                            </div>
+                            <div className="border-t border-[#DFD3C3]/30 pt-3">
+                              <p className="text-sm font-medium text-gray-700 mb-2">Produits :</p>
+                              <div className="space-y-1">
+                                {lines.map(line => (
+                                  <div key={line.id} className="flex justify-between text-sm">
+                                    <span className="text-gray-700">
+                                      <span className="font-semibold">{line.quantity}x</span> {line.product_name}
+                                      {line.customization && (
+                                        <span className="text-gray-500 italic ml-2">({line.customization})</span>
+                                      )}
+                                    </span>
+                                    <span className="text-gray-600">{line.subtotal.toFixed(2)} €</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
