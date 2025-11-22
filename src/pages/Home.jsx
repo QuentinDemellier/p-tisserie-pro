@@ -104,23 +104,7 @@ export default function Home() {
             </h1>
           </div>
           <p className="text-xl text-gray-600 mb-2">Gestion des commandes et production</p>
-          {user && (
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#E0A890] to-[#C98F75] rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold text-xs">
-                  {user.full_name?.[0]?.toUpperCase() || 'U'}
-                </span>
-              </div>
-              <span>{user.full_name}</span>
-              <span>•</span>
-              <button
-                onClick={() => base44.auth.logout()}
-                className="text-[#C98F75] hover:underline"
-              >
-                Se déconnecter
-              </button>
-            </div>
-          )}
+          <p className="text-sm text-gray-500">Sélectionnez votre espace pour vous connecter</p>
         </motion.div>
 
         {/* Spaces Grid */}
@@ -158,33 +142,14 @@ export default function Home() {
                     ))}
                   </div>
 
-                  {user && !hasAccess(space.requiredRole) && (
-                    <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                      <Lock className="w-4 h-4 flex-shrink-0" />
-                      <span>Connexion requise avec les accès appropriés</span>
-                    </div>
-                  )}
+
 
                   <Button
                     onClick={() => handleAccess(space.targetPage)}
                     className={`w-full bg-gradient-to-r ${space.color} hover:opacity-90 text-white shadow-lg text-base py-6 group`}
                   >
-                    {!user ? (
-                      <>
-                        <Lock className="w-5 h-5 mr-2" />
-                        Se connecter
-                      </>
-                    ) : hasAccess(space.requiredRole) ? (
-                      <>
-                        Accéder
-                        <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="w-5 h-5 mr-2" />
-                        Connexion requise
-                      </>
-                    )}
+                    <Lock className="w-5 h-5 mr-2" />
+                    Se connecter
                   </Button>
                 </CardContent>
               </Card>

@@ -34,24 +34,31 @@ export default function Layout({ children, currentPageName }) {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  // Hide sidebar on Home page (login page)
+  if (currentPageName === "Home") {
+    return <div className="min-h-screen">{children}</div>;
+  }
+
   const userRole = user?.user_role || 'vendeur';
 
   const navigationByRole = {
     vendeur: [
-      { title: "Accueil", url: createPageUrl("Home"), icon: Cake },
-      { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart }
+      { title: "Accueil", url: createPageUrl("VendeurHome"), icon: Cake },
+      { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
+      { title: "Commandes boutique", url: createPageUrl("OrdersList"), icon: Store }
     ],
     boutique: [
-      { title: "Accueil", url: createPageUrl("Home"), icon: Cake },
+      { title: "Accueil", url: createPageUrl("VendeurHome"), icon: Cake },
+      { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
       { title: "Commandes boutique", url: createPageUrl("OrdersList"), icon: Store }
     ],
     production: [
-      { title: "Accueil", url: createPageUrl("Home"), icon: Cake },
-      { title: "Production", url: createPageUrl("Production"), icon: Factory },
+      { title: "Accueil", url: createPageUrl("ProductionHome"), icon: Cake },
+      { title: "Planning production", url: createPageUrl("Production"), icon: Factory },
       { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: Cake }
     ],
     admin: [
-      { title: "Accueil", url: createPageUrl("Home"), icon: Cake },
+      { title: "Accueil", url: createPageUrl("AdminHome"), icon: Cake },
       { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
       { title: "Commandes", url: createPageUrl("OrdersList"), icon: Store },
       { title: "Production", url: createPageUrl("Production"), icon: Factory },
