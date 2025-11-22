@@ -7,6 +7,10 @@ import AdminShops from './pages/AdminShops';
 import CatalogProducts from './pages/CatalogProducts';
 import Admin from './pages/Admin';
 import Home from './pages/Home';
+import VendeurHome from './pages/VendeurHome';
+import ProductionHome from './pages/ProductionHome';
+import AdminHome from './pages/AdminHome';
+import DeliveryPrep from './pages/DeliveryPrep';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +24,10 @@ export const PAGES = {
     "CatalogProducts": CatalogProducts,
     "Admin": Admin,
     "Home": Home,
+    "VendeurHome": VendeurHome,
+    "ProductionHome": ProductionHome,
+    "AdminHome": AdminHome,
+    "DeliveryPrep": DeliveryPrep,
 }
 
 export const pagesConfig = {
