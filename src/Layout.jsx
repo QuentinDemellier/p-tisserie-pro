@@ -30,6 +30,7 @@ export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedRole, setSelectedRole] = useState(null);
 
   useEffect(() => {
     base44.auth.me()
@@ -37,6 +38,14 @@ export default function Layout({ children, currentPageName }) {
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
+
+  const cycleRole = () => {
+    const roles = ['vendeur', 'production', 'admin'];
+    const currentRole = selectedRole || user?.user_role || 'vendeur';
+    const currentIndex = roles.indexOf(currentRole);
+    const nextIndex = (currentIndex + 1) % roles.length;
+    setSelectedRole(roles[nextIndex]);
+  };
 
   // Hide sidebar on Home page (login page)
   if (currentPageName === "Home") {
@@ -57,7 +66,7 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  const userRole = user?.user_role || 'vendeur';
+  const userRole = selectedRole || user?.user_role || 'vendeur';
 
   const navigationByRole = {
     vendeur: [
@@ -146,7 +155,12 @@ export default function Layout({ children, currentPageName }) {
                   <p className="font-medium text-gray-800 text-sm truncate">
                     {user?.full_name || 'Utilisateur'}
                   </p>
-                  <p className="text-xs text-gray-500 capitalize">{userRole}</p>
+                  <button
+                    onClick={cycleRole}
+                    className="text-xs text-gray-500 capitalize hover:text-[#C98F75] hover:bg-[#E0A890]/10 px-2 py-1 rounded transition-colors"
+                  >
+                    {userRole} ↻
+                  </button>
                 </div>
               </div>
               <button
