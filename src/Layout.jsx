@@ -29,14 +29,32 @@ import {
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
   // Hide sidebar on Home page (login page)
   if (currentPageName === "Home") {
     return <div className="min-h-screen">{children}</div>;
+  }
+
+  // Wait for user to load before showing navigation
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FBF8F3] to-[#F8EDE3]">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-[#E0A890] to-[#C98F75] rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Cake className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
   }
 
   const userRole = user?.user_role || 'vendeur';
