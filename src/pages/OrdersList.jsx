@@ -113,7 +113,7 @@ export default function OrdersList() {
     const labels = {
       en_cours: "En cours",
       prete: "Prête",
-      retiree: "Retirée",
+      retiree: "Récupérée",
       annulee: "Annulée"
     };
     return labels[status] || status;
@@ -335,10 +335,19 @@ export default function OrdersList() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="en_cours">En cours</SelectItem>
-                            <SelectItem value="prete">Prête</SelectItem>
-                            <SelectItem value="retiree">Retirée</SelectItem>
-                            <SelectItem value="annulee">Annulée</SelectItem>
+                            {(user?.user_role === 'vendeur' || user?.user_role === 'boutique') ? (
+                              <>
+                                <SelectItem value="retiree">Récupérée</SelectItem>
+                                <SelectItem value="annulee">Annulée</SelectItem>
+                              </>
+                            ) : (
+                              <>
+                                <SelectItem value="en_cours">En cours</SelectItem>
+                                <SelectItem value="prete">Prête</SelectItem>
+                                <SelectItem value="retiree">Récupérée</SelectItem>
+                                <SelectItem value="annulee">Annulée</SelectItem>
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
