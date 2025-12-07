@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ShoppingCart, Calendar, CheckCircle2, Package } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -15,6 +17,8 @@ import { toast } from "sonner";
 export default function VendeurHome() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderLines, setOrderLines] = useState([]);
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
@@ -45,7 +49,7 @@ export default function VendeurHome() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      toast.success("Commande marquée comme retirée");
+      toast.success("Commande récupérée");
       confetti({
         particleCount: 100,
         spread: 70,
@@ -53,6 +57,12 @@ export default function VendeurHome() {
       });
     }
   });
+
+  const handleViewDetails = async (order) => {
+    setSelectedOrder(order);
+    const lines = await base44.entities.OrderLine.filter({ order_id: order.id });
+    setOrderLines(lines);
+  };
 
   const userShopId = user?.assigned_shop_id;
   const userShop = shops.find(s => s.id === userShopId);
@@ -160,47 +170,52 @@ export default function VendeurHome() {
                 {todayOrders.map(order => (
                   <Card key={order.id} className="border-[#DFD3C3]/30 hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="font-mono font-semibold text-[#C98F75] text-lg">
-                              {order.order_number}
-                            </span>
-                            <Badge className={getStatusColor(order.status)}>
-                              {getStatusLabel(order.status)}
-                            </Badge>
-                          </div>
-                          <p className="text-gray-700 mb-1">
-                            <span className="font-medium">Client :</span> {order.customer_firstname} {order.customer_name}
-                          </p>
-                          <p className="text-gray-600 text-sm">
-                            <span className="font-medium">Téléphone :</span> {order.customer_phone}
-                          </p>
-                          <p className="text-xl font-bold text-[#C98F75] mt-2">
-                            {order.total_amount.toFixed(2)} €
-                          </p>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          {order.status === 'prete' && (
-                            <Button
-                              onClick={() => updateStatusMutation.mutate({
-                                id: order.id,
-                                status: 'retiree',
-                                oldStatus: order.status
-                              })}
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                            >
-                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Marquer comme retirée
-                            </Button>
-                          )}
-                          <Link to={createPageUrl("OrdersList")}>
-                            <Button variant="outline" className="w-full border-[#DFD3C3]">
-                              Voir détails
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
+                     <div className="flex items-start gap-4">
+                       <div className="flex items-center pt-1">
+                         <Checkbox
+                           id={`order-${order.id}`}
+                           checked={order.status === 'retiree'}
+                           onCheckedChange={(checked) => {
+                             if (checked) {
+                               updateStatusMutation.mutate({
+                                 id: order.id,
+                                 status: 'retiree',
+                                 oldStatus: order.status
+                               });
+                             }
+                           }}
+                           className="h-6 w-6"
+                         />
+                       </div>
+                       <div className="flex-1">
+                         <div className="flex items-center gap-3 mb-2">
+                           <span className="font-mono font-semibold text-[#C98F75] text-lg">
+                             {order.order_number}
+                           </span>
+                           <Badge className={getStatusColor(order.status)}>
+                             {getStatusLabel(order.status)}
+                           </Badge>
+                         </div>
+                         <p className="text-gray-700 mb-1">
+                           <span className="font-medium">Client :</span> {order.customer_firstname} {order.customer_name}
+                         </p>
+                         <p className="text-gray-600 text-sm">
+                           <span className="font-medium">Téléphone :</span> {order.customer_phone}
+                         </p>
+                         <p className="text-xl font-bold text-[#C98F75] mt-2">
+                           {order.total_amount.toFixed(2)} €
+                         </p>
+                       </div>
+                       <div>
+                         <Button 
+                           variant="outline" 
+                           className="border-[#DFD3C3]"
+                           onClick={() => handleViewDetails(order)}
+                         >
+                           Voir détails
+                         </Button>
+                       </div>
+                     </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -208,6 +223,75 @@ export default function VendeurHome() {
             )}
           </CardContent>
         </Card>
+
+        <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">
+                Détails de la commande {selectedOrder?.order_number}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedOrder && (
+              <div className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold text-sm text-gray-500 mb-2">Informations client</h3>
+                    <div className="space-y-1">
+                      <p><span className="font-medium">Nom :</span> {selectedOrder.customer_firstname} {selectedOrder.customer_name}</p>
+                      <p><span className="font-medium">Téléphone :</span> {selectedOrder.customer_phone}</p>
+                      <p><span className="font-medium">Email :</span> {selectedOrder.customer_email}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm text-gray-500 mb-2">Informations retrait</h3>
+                    <div className="space-y-1">
+                      <p><span className="font-medium">Boutique :</span> {userShop?.name}</p>
+                      <p><span className="font-medium">Date :</span> {format(new Date(selectedOrder.pickup_date), 'dd MMMM yyyy', { locale: fr })}</p>
+                      <p>
+                        <span className="font-medium">Statut :</span>{' '}
+                        <Badge className={getStatusColor(selectedOrder.status)}>
+                          {getStatusLabel(selectedOrder.status)}
+                        </Badge>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-sm text-gray-500 mb-3">Produits commandés</h3>
+                  <div className="space-y-3">
+                    {orderLines.map(line => (
+                      <Card key={line.id} className="border-[#DFD3C3]/30">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-semibold">{line.quantity}x {line.product_name}</p>
+                              <p className="text-sm text-gray-600">{line.unit_price.toFixed(2)} € / unité</p>
+                            </div>
+                            <p className="font-bold text-[#C98F75]">{line.subtotal.toFixed(2)} €</p>
+                          </div>
+                          {line.customization && (
+                            <div className="mt-2 p-2 bg-[#F8EDE3]/50 rounded text-sm">
+                              <span className="font-medium">Personnalisation :</span> {line.customization}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t-2 border-[#E0A890] flex justify-between items-center">
+                  <span className="text-xl font-bold">Total</span>
+                  <span className="text-2xl font-bold text-[#C98F75]">
+                    {selectedOrder.total_amount.toFixed(2)} €
+                  </span>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
