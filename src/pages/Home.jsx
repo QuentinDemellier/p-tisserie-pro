@@ -4,13 +4,22 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ShoppingCart, Factory, Settings, Store, Cake, ArrowRight, Lock } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 export default function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [selectedSpace, setSelectedSpace] = useState(null);
+  const [loginId, setLoginId] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     base44.auth.me()
@@ -19,13 +28,55 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleAccess = (targetPage) => {
-    if (!user) {
-      base44.auth.redirectToLogin(createPageUrl(targetPage));
+  const handleAccess = (space) => {
+    setSelectedSpace(space);
+    setLoginDialogOpen(true);
+    setLoginId("");
+    setPassword("");
+  };
+
+  const handleLogin = async () => {
+    if (loginId !== "123" || password !== "123") {
+      toast.error("Identifiant ou mot de passe incorrect");
       return;
     }
 
-    navigate(createPageUrl(targetPage));
+    setIsLoggingIn(true);
+
+    try {
+      // Check if user is already logged in to Base44
+      let currentUser = user;
+      if (!currentUser) {
+        try {
+          currentUser = await base44.auth.me();
+        } catch {
+          // Not logged in to Base44, redirect to Base44 login first
+          base44.auth.redirectToLogin(createPageUrl("Home"));
+          return;
+        }
+      }
+
+      // Determine the role based on selected space
+      const roleMap = {
+        'vendeurs': 'vendeur',
+        'production': 'production',
+        'admin': 'admin'
+      };
+      const newRole = roleMap[selectedSpace.id];
+
+      // Update user role
+      await base44.auth.updateMe({ user_role: newRole });
+
+      toast.success("Connexion réussie");
+      setLoginDialogOpen(false);
+      
+      // Redirect to appropriate page
+      navigate(createPageUrl(selectedSpace.targetPage));
+    } catch (error) {
+      toast.error("Erreur lors de la connexion");
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   const spaces = [
@@ -145,7 +196,7 @@ export default function Home() {
 
 
                   <Button
-                    onClick={() => handleAccess(space.targetPage)}
+                    onClick={() => handleAccess(space)}
                     className={`w-full bg-gradient-to-r ${space.color} hover:opacity-90 text-white shadow-lg text-base py-6 group`}
                   >
                     <Lock className="w-5 h-5 mr-2" />
@@ -184,7 +235,65 @@ export default function Home() {
             </CardContent>
           </Card>
         </motion.div>
-      </div>
-    </div>
-  );
-}
+        </div>
+        </div>
+
+        {/* Login Dialog */}
+        <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+        <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">
+            Connexion - {selectedSpace?.title}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div>
+            <Label htmlFor="login_id">Identifiant</Label>
+            <Input
+              id="login_id"
+              type="text"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              placeholder="Entrez votre identifiant"
+              className="mt-2"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleLogin();
+              }}
+            />
+          </div>
+          <div>
+            <Label htmlFor="password">Mot de passe</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Entrez votre mot de passe"
+              className="mt-2"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleLogin();
+              }}
+            />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setLoginDialogOpen(false)}
+              className="flex-1"
+              disabled={isLoggingIn}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleLogin}
+              className={`flex-1 bg-gradient-to-r ${selectedSpace?.color || 'from-[#E0A890] to-[#C98F75]'} text-white`}
+              disabled={isLoggingIn}
+            >
+              {isLoggingIn ? "Connexion..." : "Se connecter"}
+            </Button>
+          </div>
+        </div>
+        </DialogContent>
+        </Dialog>
+        );
+        }
