@@ -70,8 +70,8 @@ export default function Home() {
       toast.success("Connexion réussie");
       setLoginDialogOpen(false);
       
-      // Redirect to appropriate page
-      navigate(createPageUrl(selectedSpace.targetPage));
+      // Redirect to appropriate page with full reload to refresh user data
+      window.location.href = createPageUrl(selectedSpace.targetPage);
     } catch (error) {
       toast.error("Erreur lors de la connexion");
     } finally {
