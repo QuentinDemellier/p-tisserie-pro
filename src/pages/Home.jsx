@@ -235,65 +235,65 @@ export default function Home() {
             </CardContent>
           </Card>
         </motion.div>
-        </div>
-        </div>
+      </div>
 
-        {/* Login Dialog */}
-        <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+      {/* Login Dialog */}
+      <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
         <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">
-            Connexion - {selectedSpace?.title}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div>
-            <Label htmlFor="login_id">Identifiant</Label>
-            <Input
-              id="login_id"
-              type="text"
-              value={loginId}
-              onChange={(e) => setLoginId(e.target.value)}
-              placeholder="Entrez votre identifiant"
-              className="mt-2"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleLogin();
-              }}
-            />
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              Connexion - {selectedSpace?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="login_id">Identifiant</Label>
+              <Input
+                id="login_id"
+                type="text"
+                value={loginId}
+                onChange={(e) => setLoginId(e.target.value)}
+                placeholder="Entrez votre identifiant"
+                className="mt-2"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleLogin();
+                }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Entrez votre mot de passe"
+                className="mt-2"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleLogin();
+                }}
+              />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setLoginDialogOpen(false)}
+                className="flex-1"
+                disabled={isLoggingIn}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={handleLogin}
+                className={`flex-1 bg-gradient-to-r ${selectedSpace?.color || 'from-[#E0A890] to-[#C98F75]'} text-white`}
+                disabled={isLoggingIn}
+              >
+                {isLoggingIn ? "Connexion..." : "Se connecter"}
+              </Button>
+            </div>
           </div>
-          <div>
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Entrez votre mot de passe"
-              className="mt-2"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleLogin();
-              }}
-            />
-          </div>
-          <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setLoginDialogOpen(false)}
-              className="flex-1"
-              disabled={isLoggingIn}
-            >
-              Annuler
-            </Button>
-            <Button
-              onClick={handleLogin}
-              className={`flex-1 bg-gradient-to-r ${selectedSpace?.color || 'from-[#E0A890] to-[#C98F75]'} text-white`}
-              disabled={isLoggingIn}
-            >
-              {isLoggingIn ? "Connexion..." : "Se connecter"}
-            </Button>
-          </div>
-        </div>
         </DialogContent>
-        </Dialog>
-        );
-        }
+      </Dialog>
+    </div>
+  );
+}
