@@ -101,7 +101,7 @@ export default function Layout({ children, currentPageName }) {
           --color-accent: #E5E5E5;
           --color-success: #8BC34A;
         }
-      `}
+      `}</style>
       <div className="min-h-screen flex w-full bg-white">
         <Sidebar className="border-r border-gray-200 bg-black text-white">
           <SidebarHeader className="border-b border-gray-800 p-6">
