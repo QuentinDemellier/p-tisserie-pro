@@ -333,22 +333,24 @@ L'équipe de la Pâtisserie
                 />
               </div>
 
-              <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-                <TabsList className="bg-white/80 backdrop-blur-sm border border-[#DFD3C3]/30 p-1">
-                  <TabsTrigger value="all" className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white">
-                    Tous
-                  </TabsTrigger>
-                  {categories.map(cat => (
-                    <TabsTrigger 
-                      key={cat.id} 
-                      value={cat.id}
-                      className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white"
-                    >
-                      {cat.name}
+              <div className="overflow-x-auto">
+                <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <TabsList className="bg-white/80 backdrop-blur-sm border border-[#DFD3C3]/30 p-1 w-full md:w-auto inline-flex">
+                    <TabsTrigger value="all" className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm">
+                      Tous
                     </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
+                    {categories.map(cat => (
+                      <TabsTrigger 
+                        key={cat.id} 
+                        value={cat.id}
+                        className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm whitespace-nowrap"
+                      >
+                        {cat.name}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
             </div>
 
             {loadingProducts ? (
@@ -376,8 +378,8 @@ L'équipe de la Pâtisserie
             )}
           </div>
 
-          <div className="lg:w-96">
-            <Card className="sticky top-6 border-[#DFD3C3]/30 shadow-2xl bg-white/90 backdrop-blur-sm">
+          <div className="lg:w-96 lg:sticky lg:top-6">
+            <Card className="border-[#DFD3C3]/30 shadow-2xl bg-white/90 backdrop-blur-sm">
               <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
                 <CardTitle className="flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-[#C98F75]" />

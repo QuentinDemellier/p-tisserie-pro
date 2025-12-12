@@ -127,8 +127,8 @@ export default function DeliveryPrep() {
           <p className="text-gray-600 mb-6">Liste des produits à charger</p>
           
           <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-4 items-end">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col gap-4">
                 <div className="flex-1">
                   <Label htmlFor="delivery_date" className="flex items-center gap-2 mb-2">
                     <Calendar className="w-4 h-4" />

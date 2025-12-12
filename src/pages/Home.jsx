@@ -159,7 +159,7 @@ export default function Home() {
         </motion.div>
 
         {/* Spaces Grid */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto">
           {spaces.map((space, index) => (
             <motion.div
               key={space.id}

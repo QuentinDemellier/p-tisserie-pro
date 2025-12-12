@@ -91,10 +91,10 @@ export default function Production() {
         </div>
 
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
-          <CardContent className="p-6">
-            <div className="grid md:grid-cols-3 gap-6 items-end">
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-end">
               <div>
-                <Label htmlFor="start_date" className="flex items-center gap-2 mb-2">
+                <Label htmlFor="start_date" className="flex items-center gap-2 mb-2 text-sm">
                   <Calendar className="w-4 h-4" />
                   Date de début
                 </Label>
@@ -107,7 +107,7 @@ export default function Production() {
                 />
               </div>
               <div>
-                <Label htmlFor="end_date" className="flex items-center gap-2 mb-2">
+                <Label htmlFor="end_date" className="flex items-center gap-2 mb-2 text-sm">
                   <Calendar className="w-4 h-4" />
                   Date de fin
                 </Label>
@@ -122,7 +122,7 @@ export default function Production() {
               </div>
               <Button
                 onClick={exportProduction}
-                className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
+                className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white w-full"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Exporter

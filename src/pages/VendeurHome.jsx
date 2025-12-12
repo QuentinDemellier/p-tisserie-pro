@@ -170,51 +170,51 @@ export default function VendeurHome() {
                 {todayOrders.map(order => (
                   <Card key={order.id} className="border-[#DFD3C3]/30 hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
-                     <div className="flex items-start gap-4">
-                       <div className="flex items-center pt-1">
-                         <Checkbox
-                           id={`order-${order.id}`}
-                           checked={order.status === 'retiree'}
-                           onCheckedChange={(checked) => {
-                             if (checked) {
-                               updateStatusMutation.mutate({
-                                 id: order.id,
-                                 status: 'retiree',
-                                 oldStatus: order.status
-                               });
-                             }
-                           }}
-                           className="h-6 w-6"
-                         />
-                       </div>
-                       <div className="flex-1">
-                         <div className="flex items-center gap-3 mb-2">
-                           <span className="font-mono font-semibold text-[#C98F75] text-lg">
-                             {order.order_number}
-                           </span>
-                           <Badge className={getStatusColor(order.status)}>
-                             {getStatusLabel(order.status)}
-                           </Badge>
-                         </div>
-                         <p className="text-gray-700 mb-1">
-                           <span className="font-medium">Client :</span> {order.customer_firstname} {order.customer_name}
-                         </p>
-                         <p className="text-gray-600 text-sm">
-                           <span className="font-medium">Téléphone :</span> {order.customer_phone}
-                         </p>
-                         <p className="text-xl font-bold text-[#C98F75] mt-2">
-                           {order.total_amount.toFixed(2)} €
-                         </p>
-                       </div>
-                       <div>
-                         <Button 
-                           variant="outline" 
-                           className="border-[#DFD3C3]"
-                           onClick={() => handleViewDetails(order)}
-                         >
-                           Voir détails
-                         </Button>
-                       </div>
+                     <div className="flex flex-col sm:flex-row items-start gap-4">
+                      <div className="flex items-center pt-1">
+                        <Checkbox
+                          id={`order-${order.id}`}
+                          checked={order.status === 'retiree'}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              updateStatusMutation.mutate({
+                                id: order.id,
+                                status: 'retiree',
+                                oldStatus: order.status
+                              });
+                            }
+                          }}
+                          className="h-6 w-6"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span className="font-mono font-semibold text-[#C98F75] text-sm sm:text-lg">
+                            {order.order_number}
+                          </span>
+                          <Badge className={getStatusColor(order.status)}>
+                            {getStatusLabel(order.status)}
+                          </Badge>
+                        </div>
+                        <p className="text-gray-700 mb-1 text-sm sm:text-base">
+                          <span className="font-medium">Client :</span> {order.customer_firstname} {order.customer_name}
+                        </p>
+                        <p className="text-gray-600 text-xs sm:text-sm">
+                          <span className="font-medium">Téléphone :</span> {order.customer_phone}
+                        </p>
+                        <p className="text-lg sm:text-xl font-bold text-[#C98F75] mt-2">
+                          {order.total_amount.toFixed(2)} €
+                        </p>
+                      </div>
+                      <div className="w-full sm:w-auto">
+                        <Button 
+                          variant="outline" 
+                          className="border-[#DFD3C3] w-full sm:w-auto text-sm"
+                          onClick={() => handleViewDetails(order)}
+                        >
+                          Voir détails
+                        </Button>
+                      </div>
                      </div>
                     </CardContent>
                   </Card>

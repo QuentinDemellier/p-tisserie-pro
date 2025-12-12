@@ -312,11 +312,11 @@ export default function Admin() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="products" className="text-base">Produits</TabsTrigger>
-            <TabsTrigger value="categories" className="text-base">Catégories</TabsTrigger>
-            <TabsTrigger value="shops" className="text-base">Boutiques</TabsTrigger>
-            <TabsTrigger value="users" className="text-base">Utilisateurs</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 h-auto">
+            <TabsTrigger value="products" className="text-sm sm:text-base py-2">Produits</TabsTrigger>
+            <TabsTrigger value="categories" className="text-sm sm:text-base py-2">Catégories</TabsTrigger>
+            <TabsTrigger value="shops" className="text-sm sm:text-base py-2">Boutiques</TabsTrigger>
+            <TabsTrigger value="users" className="text-sm sm:text-base py-2">Utilisateurs</TabsTrigger>
           </TabsList>
 
           {/* PRODUCTS TAB */}
