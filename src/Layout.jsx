@@ -55,10 +55,10 @@ export default function Layout({ children, currentPageName }) {
   // Wait for user to load before showing navigation
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FBF8F3] to-[#F8EDE3]">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-[#E0A890] to-[#C98F75] rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <Cake className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 bg-gradient-to-br from-[#D4AF37] to-[#B8941F] rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Cake className="w-8 h-8 text-black" />
           </div>
           <p className="text-gray-600">Chargement...</p>
         </div>
@@ -95,30 +95,28 @@ export default function Layout({ children, currentPageName }) {
     <SidebarProvider>
       <style>{`
         :root {
-          --color-primary: #E0A890;
-          --color-primary-dark: #C98F75;
-          --color-secondary: #F8EDE3;
-          --color-accent: #DFD3C3;
+          --color-primary: #D4AF37;
+          --color-primary-dark: #B8941F;
+          --color-secondary: #F5F5F5;
+          --color-accent: #E5E5E5;
           --color-success: #8BC34A;
         }
-      `}</style>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-[#FBF8F3] to-[#F8EDE3]">
-        <Sidebar className="border-r border-[#DFD3C3]/30 bg-white/80 backdrop-blur-sm">
-          <SidebarHeader className="border-b border-[#DFD3C3]/30 p-6">
+      `}
+      <div className="min-h-screen flex w-full bg-white">
+        <Sidebar className="border-r border-gray-200 bg-black text-white">
+          <SidebarHeader className="border-b border-gray-800 p-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#E0A890] to-[#C98F75] rounded-2xl flex items-center justify-center shadow-lg">
-                <Cake className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h2 className="font-bold text-xl text-gray-800">Pâtisserie</h2>
-                <p className="text-xs text-gray-500">Gestion des commandes</p>
-              </div>
+              <img 
+                src="https://fink-chocolatier.fr/wp-content/uploads/2021/07/logo-fink-chocolatier.svg" 
+                alt="Fink Chocolatier" 
+                className="h-12 w-auto object-contain"
+              />
             </div>
           </SidebarHeader>
           
           <SidebarContent className="p-3">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-3">
+              <SidebarGroupLabel className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-3">
                 Navigation
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -127,8 +125,8 @@ export default function Layout({ children, currentPageName }) {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        className={`hover:bg-[#E0A890]/10 hover:text-[#C98F75] transition-all duration-200 rounded-xl mb-1 ${
-                          location.pathname === item.url ? 'bg-[#E0A890]/20 text-[#C98F75] font-medium' : ''
+                        className={`hover:bg-[#D4AF37]/20 hover:text-[#D4AF37] transition-all duration-200 rounded-xl mb-1 ${
+                          location.pathname === item.url ? 'bg-[#D4AF37]/30 text-[#D4AF37] font-medium' : 'text-gray-300'
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
@@ -143,21 +141,21 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-[#DFD3C3]/30 p-4">
+          <SidebarFooter className="border-t border-gray-800 p-4">
             <div className="space-y-3">
               <div className="flex items-center gap-3 px-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#E0A890] to-[#C98F75] rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#D4AF37] to-[#B8941F] rounded-full flex items-center justify-center">
+                  <span className="text-black font-semibold text-sm">
                     {user?.full_name?.[0]?.toUpperCase() || 'U'}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-800 text-sm truncate">
+                  <p className="font-medium text-white text-sm truncate">
                     {user?.full_name || 'Utilisateur'}
                   </p>
                   <button
                     onClick={cycleRole}
-                    className="text-xs text-gray-500 capitalize hover:text-[#C98F75] hover:bg-[#E0A890]/10 px-2 py-1 rounded transition-colors"
+                    className="text-xs text-gray-400 capitalize hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 px-2 py-1 rounded transition-colors"
                   >
                     {userRole} ↻
                   </button>
@@ -168,7 +166,7 @@ export default function Layout({ children, currentPageName }) {
                   base44.auth.logout();
                   window.location.href = createPageUrl("Home");
                 }}
-                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-[#C98F75] hover:bg-[#E0A890]/10 rounded-lg transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 Déconnexion
@@ -178,12 +176,16 @@ export default function Layout({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <header className="bg-white/60 backdrop-blur-md border-b border-[#DFD3C3]/30 px-6 py-4 md:hidden sticky top-0 z-10">
+          <header className="bg-white border-b border-gray-200 px-6 py-4 md:hidden sticky top-0 z-10">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-[#E0A890]/10 p-2 rounded-lg transition-colors duration-200">
+              <SidebarTrigger className="hover:bg-gray-100 p-2 rounded-lg transition-colors duration-200">
                 <Menu className="w-5 h-5" />
               </SidebarTrigger>
-              <h1 className="text-lg font-semibold text-gray-800">Pâtisserie</h1>
+              <img 
+                src="https://fink-chocolatier.fr/wp-content/uploads/2021/07/logo-fink-chocolatier.svg" 
+                alt="Fink Chocolatier" 
+                className="h-8 w-auto object-contain"
+              />
             </div>
           </header>
 
