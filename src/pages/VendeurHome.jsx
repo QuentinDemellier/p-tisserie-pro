@@ -19,6 +19,7 @@ export default function VendeurHome() {
   const [user, setUser] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderLines, setOrderLines] = useState([]);
+  const [optimisticStatus, setOptimisticStatus] = useState({});
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
@@ -47,14 +48,31 @@ export default function VendeurHome() {
         });
       }
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      toast.success("Commande récupérée");
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
+      setOptimisticStatus(prev => {
+        const newState = { ...prev };
+        delete newState[variables.id];
+        return newState;
       });
+      if (variables.status === 'retiree') {
+        toast.success("Commande récupérée");
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      } else {
+        toast.success("Commande mise à jour");
+      }
+    },
+    onError: (error, variables) => {
+      setOptimisticStatus(prev => {
+        const newState = { ...prev };
+        delete newState[variables.id];
+        return newState;
+      });
+      toast.error("Erreur lors de la mise à jour");
     }
   });
 
