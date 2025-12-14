@@ -167,7 +167,8 @@ export default function VendeurHome() {
             ) : (
               <div className="space-y-4">
                 {todayOrders.map(order => {
-                  const isCompleted = order.status === 'retiree';
+                  const currentStatus = optimisticStatus[order.id] !== undefined ? optimisticStatus[order.id] : order.status;
+                  const isCompleted = currentStatus === 'retiree';
                   return (
                   <Card key={order.id} className={`border-[#DFD3C3]/30 hover:shadow-md transition-shadow ${isCompleted ? 'opacity-50 bg-gray-50' : ''}`}>
                     <CardContent className="p-4">
@@ -177,19 +178,13 @@ export default function VendeurHome() {
                            id={`order-${order.id}`}
                            checked={isCompleted}
                            onCheckedChange={(checked) => {
-                             if (checked) {
-                               updateStatusMutation.mutate({
-                                 id: order.id,
-                                 status: 'retiree',
-                                 oldStatus: order.status
-                               });
-                             } else {
-                               updateStatusMutation.mutate({
-                                 id: order.id,
-                                 status: 'prete',
-                                 oldStatus: order.status
-                               });
-                             }
+                             const newStatus = checked ? 'retiree' : 'prete';
+                             setOptimisticStatus(prev => ({ ...prev, [order.id]: newStatus }));
+                             updateStatusMutation.mutate({
+                               id: order.id,
+                               status: newStatus,
+                               oldStatus: order.status
+                             });
                            }}
                            className="h-6 w-6"
                          />
@@ -199,8 +194,8 @@ export default function VendeurHome() {
                           <span className={`font-mono font-semibold text-sm sm:text-lg ${isCompleted ? 'line-through text-gray-400' : 'text-[#C98F75]'}`}>
                             {order.order_number}
                           </span>
-                          <Badge className={getStatusColor(order.status)}>
-                            {getStatusLabel(order.status)}
+                          <Badge className={getStatusColor(currentStatus)}>
+                            {getStatusLabel(currentStatus)}
                           </Badge>
                         </div>
                         <p className={`mb-1 text-sm sm:text-base ${isCompleted ? 'text-gray-500' : 'text-gray-700'}`}>
