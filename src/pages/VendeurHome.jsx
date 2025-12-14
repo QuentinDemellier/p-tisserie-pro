@@ -70,8 +70,7 @@ export default function VendeurHome() {
   const todayOrders = orders.filter(order => 
     order.pickup_date === today && 
     order.shop_id === userShopId &&
-    order.status !== 'annulee' &&
-    order.status !== 'retiree'
+    order.status !== 'annulee'
   );
 
   const completedToday = orders.filter(order => 
@@ -167,42 +166,50 @@ export default function VendeurHome() {
               </div>
             ) : (
               <div className="space-y-4">
-                {todayOrders.map(order => (
-                  <Card key={order.id} className="border-[#DFD3C3]/30 hover:shadow-md transition-shadow">
+                {todayOrders.map(order => {
+                  const isCompleted = order.status === 'retiree';
+                  return (
+                  <Card key={order.id} className={`border-[#DFD3C3]/30 hover:shadow-md transition-shadow ${isCompleted ? 'opacity-50 bg-gray-50' : ''}`}>
                     <CardContent className="p-4">
-                     <div className="flex flex-col sm:flex-row items-start gap-4">
-                      <div className="flex items-center pt-1">
-                        <Checkbox
-                          id={`order-${order.id}`}
-                          checked={order.status === 'retiree'}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              updateStatusMutation.mutate({
-                                id: order.id,
-                                status: 'retiree',
-                                oldStatus: order.status
-                              });
-                            }
-                          }}
-                          className="h-6 w-6"
-                        />
-                      </div>
+                      <div className="flex flex-col sm:flex-row items-start gap-4">
+                       <div className="flex items-center pt-1">
+                         <Checkbox
+                           id={`order-${order.id}`}
+                           checked={isCompleted}
+                           onCheckedChange={(checked) => {
+                             if (checked) {
+                               updateStatusMutation.mutate({
+                                 id: order.id,
+                                 status: 'retiree',
+                                 oldStatus: order.status
+                               });
+                             } else {
+                               updateStatusMutation.mutate({
+                                 id: order.id,
+                                 status: 'prete',
+                                 oldStatus: order.status
+                               });
+                             }
+                           }}
+                           className="h-6 w-6"
+                         />
+                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <span className="font-mono font-semibold text-[#C98F75] text-sm sm:text-lg">
+                          <span className={`font-mono font-semibold text-sm sm:text-lg ${isCompleted ? 'line-through text-gray-400' : 'text-[#C98F75]'}`}>
                             {order.order_number}
                           </span>
                           <Badge className={getStatusColor(order.status)}>
                             {getStatusLabel(order.status)}
                           </Badge>
                         </div>
-                        <p className="text-gray-700 mb-1 text-sm sm:text-base">
+                        <p className={`mb-1 text-sm sm:text-base ${isCompleted ? 'text-gray-500' : 'text-gray-700'}`}>
                           <span className="font-medium">Client :</span> {order.customer_firstname} {order.customer_name}
                         </p>
-                        <p className="text-gray-600 text-xs sm:text-sm">
+                        <p className={`text-xs sm:text-sm ${isCompleted ? 'text-gray-400' : 'text-gray-600'}`}>
                           <span className="font-medium">Téléphone :</span> {order.customer_phone}
                         </p>
-                        <p className="text-lg sm:text-xl font-bold text-[#C98F75] mt-2">
+                        <p className={`text-lg sm:text-xl font-bold mt-2 ${isCompleted ? 'text-gray-400' : 'text-[#C98F75]'}`}>
                           {order.total_amount.toFixed(2)} €
                         </p>
                       </div>
@@ -216,9 +223,10 @@ export default function VendeurHome() {
                         </Button>
                       </div>
                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                     </CardContent>
+                     </Card>
+                     );
+                     })}
               </div>
             )}
           </CardContent>
