@@ -9,7 +9,8 @@ import {
   Settings,
   Cake,
   LogOut,
-  Menu
+  Menu,
+  TrendingUp
 } from "lucide-react";
 import {
   Sidebar,
@@ -85,7 +86,8 @@ export default function Layout({ children, currentPageName }) {
       { title: "Livraison", url: createPageUrl("DeliveryPrep"), icon: Store }
     ],
     admin: [
-      { title: "Administration", url: createPageUrl("Admin"), icon: Settings }
+      { title: "Administration", url: createPageUrl("Admin"), icon: Settings },
+      { title: "Rapports", url: createPageUrl("Reports"), icon: Factory }
     ]
   };
 

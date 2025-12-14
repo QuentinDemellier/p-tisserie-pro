@@ -11,6 +11,7 @@ import VendeurHome from './pages/VendeurHome';
 import ProductionHome from './pages/ProductionHome';
 import AdminHome from './pages/AdminHome';
 import DeliveryPrep from './pages/DeliveryPrep';
+import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "ProductionHome": ProductionHome,
     "AdminHome": AdminHome,
     "DeliveryPrep": DeliveryPrep,
+    "Reports": Reports,
 }
 
 export const pagesConfig = {
