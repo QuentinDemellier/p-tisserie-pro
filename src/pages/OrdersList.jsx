@@ -39,13 +39,6 @@ export default function OrdersList() {
   });
 
   const filteredOrders = orders.filter(order => {
-    const userShopId = user?.assigned_shop_id;
-    const isAdmin = user?.user_role === 'admin';
-    
-    if (!isAdmin && userShopId && order.shop_id !== userShopId) {
-      return false;
-    }
-
     const matchesSearch = 
       order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
