@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShoppingCart, Search, Calendar, User, Mail, Phone, CheckCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 import ProductCard from "../components/order/ProductCard";
 import CartItem from "../components/order/CartItem";
 
@@ -97,9 +98,18 @@ L'équipe de la Pâtisserie
       });
 
       return { order, orderNumber };
-    },
-    onSuccess: ({ orderNumber }) => {
-      toast.success(`Commande ${orderNumber} créée avec succès !`);
+      },
+      onSuccess: ({ orderNumber }) => {
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 }
+      });
+      toast.success("La commande a bien été enregistrée", {
+        description: `Numéro de commande : ${orderNumber}`,
+        duration: 5000,
+        icon: "✓"
+      });
       setCart([]);
       setStep(1);
       setOrderData({
@@ -110,7 +120,7 @@ L'équipe de la Pâtisserie
         customer_phone: "",
         customer_email: ""
       });
-    },
+      },
     onError: (error) => {
       toast.error("Erreur lors de la création de la commande");
       console.error(error);
