@@ -196,15 +196,12 @@ export default function VendeurHome() {
                            checked={isCompleted}
                            onCheckedChange={(checked) => {
                              if (checked) {
-                               const confirmMessage = `Confirmer la récupération de la commande ${order.order_number} par ${order.customer_firstname} ${order.customer_name} ?`;
-                               if (window.confirm(confirmMessage)) {
-                                 setOptimisticStatus(prev => ({ ...prev, [order.id]: 'retiree' }));
-                                 updateStatusMutation.mutate({
-                                   id: order.id,
-                                   status: 'retiree',
-                                   oldStatus: order.status
-                                 });
-                               }
+                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'retiree' }));
+                               updateStatusMutation.mutate({
+                                 id: order.id,
+                                 status: 'retiree',
+                                 oldStatus: order.status
+                               });
                              } else {
                                setOptimisticStatus(prev => ({ ...prev, [order.id]: 'prete' }));
                                updateStatusMutation.mutate({
