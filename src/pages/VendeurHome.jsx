@@ -61,10 +61,6 @@ export default function VendeurHome() {
           spread: 70,
           origin: { y: 0.6 }
         });
-        toast.success("✓ Commande validée", {
-          description: "La commande a bien été récupérée par le client",
-          duration: 4000
-        });
       } else {
         toast.success("Commande mise à jour");
       }
