@@ -49,12 +49,12 @@ export default function VendeurHome() {
       }
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
       setOptimisticStatus(prev => {
         const newState = { ...prev };
         delete newState[variables.id];
         return newState;
       });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
       if (variables.status === 'retiree') {
         toast.success("Commande récupérée");
         confetti({
