@@ -179,22 +179,20 @@ export default function OrdersList() {
                 />
               </div>
 
-              {user?.user_role === 'admin' && (
-                <div className="relative">
-                  <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
-                  <Select value={selectedShop} onValueChange={setSelectedShop}>
-                    <SelectTrigger className="pl-10 border-[#DFD3C3]">
-                      <SelectValue placeholder="Toutes les boutiques" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Toutes les boutiques</SelectItem>
-                      {shops.map(shop => (
-                        <SelectItem key={shop.id} value={shop.id}>{shop.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <div className="relative">
+                <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+                <Select value={selectedShop} onValueChange={setSelectedShop}>
+                  <SelectTrigger className="pl-10 border-[#DFD3C3]">
+                    <SelectValue placeholder="Toutes les boutiques" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toutes les boutiques</SelectItem>
+                    {shops.map(shop => (
+                      <SelectItem key={shop.id} value={shop.id}>{shop.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
