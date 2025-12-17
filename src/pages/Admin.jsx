@@ -12,7 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Tag, Store, MapPin, Image as ImageIcon, Settings, Users, History, Key, ShoppingBag } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, Store, MapPin, Image as ImageIcon, Settings, Users, History, Key, ShoppingBag, CheckSquare } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -24,6 +25,10 @@ export default function Admin() {
   // Product states
   const [editingProduct, setEditingProduct] = useState(null);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
+  const [bulkAction, setBulkAction] = useState("");
+  const [bulkCategoryId, setBulkCategoryId] = useState("");
   const [productFormData, setProductFormData] = useState({
     name: "",
     price: "",
@@ -114,6 +119,23 @@ export default function Admin() {
     }
   });
 
+  const bulkUpdateProductMutation = useMutation({
+    mutationFn: async ({ productIds, updates }) => {
+      await Promise.all(
+        productIds.map(id => base44.entities.Product.update(id, updates))
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setSelectedProducts([]);
+      setBulkActionDialogOpen(false);
+      setBulkAction("");
+      setBulkCategoryId("");
+      toast.success("Produits mis à jour avec succès");
+    },
+    onError: () => toast.error("Erreur lors de la mise à jour groupée")
+  });
+
   // Category mutations
   const createCategoryMutation = useMutation({
     mutationFn: (data) => base44.entities.Category.create(data),
@@ -198,6 +220,45 @@ export default function Admin() {
     } else {
       createProductMutation.mutate(data);
     }
+  };
+
+  const handleSelectAllProducts = (checked) => {
+    if (checked) {
+      setSelectedProducts(products.map(p => p.id));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  const handleSelectProduct = (productId, checked) => {
+    if (checked) {
+      setSelectedProducts([...selectedProducts, productId]);
+    } else {
+      setSelectedProducts(selectedProducts.filter(id => id !== productId));
+    }
+  };
+
+  const handleBulkAction = () => {
+    if (!bulkAction) {
+      toast.error("Veuillez sélectionner une action");
+      return;
+    }
+
+    if (bulkAction === "change_category" && !bulkCategoryId) {
+      toast.error("Veuillez sélectionner une catégorie");
+      return;
+    }
+
+    let updates = {};
+    if (bulkAction === "activate") {
+      updates = { active: true };
+    } else if (bulkAction === "deactivate") {
+      updates = { active: false };
+    } else if (bulkAction === "change_category") {
+      updates = { category_id: bulkCategoryId };
+    }
+
+    bulkUpdateProductMutation.mutate({ productIds: selectedProducts, updates });
   };
 
   // Category handlers
@@ -327,6 +388,62 @@ export default function Admin() {
                 Nouveau produit
               </Button>
             </div>
+
+            {selectedProducts.length > 0 && (
+              <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-r from-[#E0A890] to-[#C98F75] text-white mb-4">
+                <CardContent className="p-4">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <CheckSquare className="w-5 h-5" />
+                      <span className="font-semibold">{selectedProducts.length} produit(s) sélectionné(s)</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 flex-1">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setBulkAction("activate");
+                          setBulkActionDialogOpen(true);
+                        }}
+                        className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                      >
+                        Mettre actif
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setBulkAction("deactivate");
+                          setBulkActionDialogOpen(true);
+                        }}
+                        className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                      >
+                        Mettre en pause
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setBulkAction("change_category");
+                          setBulkActionDialogOpen(true);
+                        }}
+                        className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                      >
+                        Changer la catégorie
+                      </Button>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedProducts([])}
+                      className="hover:bg-white/20 text-white"
+                    >
+                      Annuler
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90">
               <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
                 <CardTitle>Liste des produits ({products.length})</CardTitle>
@@ -336,6 +453,12 @@ export default function Admin() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-[#F8EDE3]/50">
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={selectedProducts.length === products.length && products.length > 0}
+                            onCheckedChange={handleSelectAllProducts}
+                          />
+                        </TableHead>
                         <TableHead>Image</TableHead>
                         <TableHead>Nom</TableHead>
                         <TableHead>Catégorie</TableHead>
@@ -357,6 +480,12 @@ export default function Admin() {
                           const category = categories.find(c => c.id === product.category_id);
                           return (
                             <TableRow key={product.id} className="hover:bg-[#F8EDE3]/20">
+                              <TableCell>
+                                <Checkbox
+                                  checked={selectedProducts.includes(product.id)}
+                                  onCheckedChange={(checked) => handleSelectProduct(product.id, checked)}
+                                />
+                              </TableCell>
                               <TableCell>
                                 <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#F8EDE3] to-[#DFD3C3] overflow-hidden flex items-center justify-center">
                                   {product.image_url ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" /> : <span className="text-2xl">🧁</span>}
@@ -806,6 +935,77 @@ export default function Admin() {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Bulk Action Dialog */}
+        <Dialog open={bulkActionDialogOpen} onOpenChange={setBulkActionDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Action groupée</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-gray-600">
+                Vous allez modifier {selectedProducts.length} produit(s)
+              </p>
+              
+              {bulkAction === "activate" && (
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <p className="font-semibold text-green-800">Mettre les produits actifs</p>
+                  <p className="text-sm text-green-600 mt-1">
+                    Les produits seront visibles dans le catalogue
+                  </p>
+                </div>
+              )}
+
+              {bulkAction === "deactivate" && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="font-semibold text-gray-800">Mettre les produits en pause</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Les produits seront masqués du catalogue
+                  </p>
+                </div>
+              )}
+
+              {bulkAction === "change_category" && (
+                <div>
+                  <Label htmlFor="bulk_category">Nouvelle catégorie</Label>
+                  <Select value={bulkCategoryId} onValueChange={setBulkCategoryId}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Sélectionnez une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map(cat => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setBulkActionDialogOpen(false);
+                    setBulkAction("");
+                    setBulkCategoryId("");
+                  }}
+                  className="flex-1"
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={handleBulkAction}
+                  disabled={bulkUpdateProductMutation.isPending}
+                  className="flex-1 bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
+                >
+                  {bulkUpdateProductMutation.isPending ? "En cours..." : "Confirmer"}
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
