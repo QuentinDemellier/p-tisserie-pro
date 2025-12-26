@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Calendar, Store, Eye, Download, Trash2, Pencil, X } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import EditOrderDialog from "../components/order/EditOrderDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
@@ -26,6 +27,10 @@ export default function OrdersList() {
   const [statusHistory, setStatusHistory] = useState([]);
   const [editingOrder, setEditingOrder] = useState(null);
   const [editingOrderLines, setEditingOrderLines] = useState([]);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [deleteReason, setDeleteReason] = useState("");
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -111,15 +116,37 @@ export default function OrdersList() {
     setEditingOrderLines(lines);
   };
 
-  const handleCancelOrder = async (order) => {
-    if (confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) {
-      await updateStatusMutation.mutateAsync({ 
-        id: order.id, 
-        status: 'annulee', 
-        oldStatus: order.status 
-      });
-      setSelectedOrder(null);
+  const handleCancelOrder = async () => {
+    if (!cancelReason.trim()) {
+      toast.error("Veuillez indiquer la raison de l'annulation");
+      return;
     }
+    await updateStatusMutation.mutateAsync({ 
+      id: selectedOrder.id, 
+      status: 'annulee', 
+      oldStatus: selectedOrder.status 
+    });
+    await base44.entities.OrderStatusHistory.create({
+      order_id: selectedOrder.id,
+      old_status: selectedOrder.status,
+      new_status: 'annulee',
+      changed_by: user?.email || "inconnu",
+      comment: cancelReason
+    });
+    setCancelDialogOpen(false);
+    setCancelReason("");
+    setSelectedOrder(null);
+    toast.success("Commande annulée");
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!deleteReason.trim()) {
+      toast.error("Veuillez indiquer la raison de la suppression");
+      return;
+    }
+    await deleteOrderMutation.mutateAsync(selectedOrder.id);
+    setDeleteDialogOpen(false);
+    setDeleteReason("");
   };
 
   const getStatusColor = (status) => {
@@ -321,32 +348,8 @@ export default function OrdersList() {
         <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-2xl flex items-center justify-between">
-                <span>Détails de la commande {selectedOrder?.order_number}</span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleCancelOrder(selectedOrder)}
-                    className="text-orange-600 hover:bg-orange-50"
-                    title="Annuler la commande"
-                  >
-                    <X className="w-5 h-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      if (confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) {
-                        deleteOrderMutation.mutate(selectedOrder.id);
-                      }
-                    }}
-                    className="text-red-600 hover:bg-red-50"
-                    title="Supprimer la commande"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </Button>
-                </div>
+              <DialogTitle className="text-2xl">
+                Détails de la commande {selectedOrder?.order_number}
               </DialogTitle>
             </DialogHeader>
             
