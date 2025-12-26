@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,8 @@ import { fr } from "date-fns/locale";
 import confetti from "canvas-confetti";
 
 export default function DeliveryPrep() {
+  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [checkedItems, setCheckedItems] = useState({});
 
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
@@ -29,6 +29,42 @@ export default function DeliveryPrep() {
   const { data: shops = [] } = useQuery({
     queryKey: ['shops'],
     queryFn: () => base44.entities.Shop.list()
+  });
+
+  const { data: deliveryItems = [] } = useQuery({
+    queryKey: ['deliveryItems', selectedDate],
+    queryFn: () => base44.entities.DeliveryItem.filter({ delivery_date: selectedDate })
+  });
+
+  const updateDeliveryItemMutation = useMutation({
+    mutationFn: async ({ delivery_date, shop_id, product_name, checked }) => {
+      const existingItem = deliveryItems.find(
+        item => item.shop_id === shop_id && item.product_name === product_name
+      );
+      
+      if (existingItem) {
+        await base44.entities.DeliveryItem.update(existingItem.id, { checked });
+      } else {
+        await base44.entities.DeliveryItem.create({
+          delivery_date,
+          shop_id,
+          product_name,
+          checked
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deliveryItems', selectedDate] });
+    }
+  });
+
+  const updateOrderStatusMutation = useMutation({
+    mutationFn: async ({ orderId, status }) => {
+      await base44.entities.Order.update(orderId, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    }
   });
 
   const filteredOrders = orders.filter(order => 
@@ -68,12 +104,33 @@ export default function DeliveryPrep() {
     };
   }).filter(delivery => delivery.products.length > 0);
 
-  const handleToggle = (shopId, productName) => {
-    const key = `${shopId}-${productName}`;
-    setCheckedItems(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  const handleToggle = async (shopId, productName) => {
+    const existingItem = deliveryItems.find(
+      item => item.shop_id === shopId && item.product_name === productName
+    );
+    const newCheckedState = !existingItem?.checked;
+    
+    await updateDeliveryItemMutation.mutateAsync({
+      delivery_date: selectedDate,
+      shop_id: shopId,
+      product_name: productName,
+      checked: newCheckedState
+    });
+
+    // Mettre à jour le statut des commandes concernées en "en_livraison"
+    if (newCheckedState) {
+      const shopOrders = filteredOrders.filter(o => o.shop_id === shopId);
+      for (const order of shopOrders) {
+        const lines = orderLines.filter(line => line.order_id === order.id);
+        const hasProduct = lines.some(line => line.product_name === productName);
+        if (hasProduct && order.status === 'prete') {
+          await updateOrderStatusMutation.mutateAsync({
+            orderId: order.id,
+            status: 'en_livraison'
+          });
+        }
+      }
+    }
     
     confetti({
       particleCount: 50,
@@ -82,9 +139,16 @@ export default function DeliveryPrep() {
     });
   };
 
+  const isItemChecked = (shopId, productName) => {
+    const item = deliveryItems.find(
+      item => item.shop_id === shopId && item.product_name === productName
+    );
+    return item?.checked || false;
+  };
+
   const getProgress = (shopId, products) => {
     const total = products.length;
-    const checked = products.filter(p => checkedItems[`${shopId}-${p.name}`]).length;
+    const checked = products.filter(p => isItemChecked(shopId, p.name)).length;
     return { checked, total, percentage: total > 0 ? (checked / total) * 100 : 0 };
   };
 
@@ -209,7 +273,7 @@ export default function DeliveryPrep() {
                   <CardContent className="p-6">
                     <div className="space-y-3">
                       {products.map(product => {
-                        const isChecked = checkedItems[`${shop.id}-${product.name}`];
+                        const isChecked = isItemChecked(shop.id, product.name);
                         return (
                           <div 
                             key={product.name}
