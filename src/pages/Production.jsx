@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Factory, Download, Package, Cake } from "lucide-react";
+import { Calendar, Factory, Download, Package, Cake, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -224,6 +224,12 @@ export default function Production() {
                                   )}
                                 </div>
                               ))}
+                              {order.status === 'enregistree_modifiee' && (
+                                <div className="flex items-center gap-1 text-orange-600 text-xs mt-1">
+                                  <AlertCircle className="w-3 h-3" />
+                                  <span>Commande modifiée</span>
+                                </div>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
