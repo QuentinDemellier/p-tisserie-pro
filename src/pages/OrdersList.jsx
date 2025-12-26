@@ -377,34 +377,9 @@ export default function OrdersList() {
                       <p><span className="font-medium">Date :</span> {format(new Date(selectedOrder.pickup_date), 'dd MMMM yyyy', { locale: fr })}</p>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">Statut :</span>
-                        <Select
-                          value={tempStatus}
-                          onValueChange={(value) => {
-                            const oldStatus = tempStatus;
-                            setTempStatus(value);
-                            updateStatusMutation.mutate({ id: selectedOrder.id, status: value, oldStatus });
-                          }}
-                        >
-                          <SelectTrigger className="w-40">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(user?.user_role === 'vendeur' || user?.user_role === 'boutique') ? (
-                              <>
-                                <SelectItem value="recuperee">Récupérée</SelectItem>
-                                <SelectItem value="annulee">Annulée</SelectItem>
-                              </>
-                            ) : (
-                              <>
-                                <SelectItem value="enregistree">Enregistrée</SelectItem>
-                                <SelectItem value="enregistree_modifiee">Enregistrée - modifiée</SelectItem>
-                                <SelectItem value="en_livraison">En livraison</SelectItem>
-                                <SelectItem value="recuperee">Récupérée</SelectItem>
-                                <SelectItem value="annulee">Annulée</SelectItem>
-                              </>
-                            )}
-                          </SelectContent>
-                        </Select>
+                        <Badge className={getStatusColor(tempStatus)}>
+                          {getStatusLabel(tempStatus)}
+                        </Badge>
                       </div>
                     </div>
                   </div>
