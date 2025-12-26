@@ -461,12 +461,115 @@ export default function OrdersList() {
                     </div>
                   </div>
                 )}
+
+                <div className="pt-6 border-t border-[#DFD3C3]/30 flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCancelDialogOpen(true)}
+                    className="flex-1 border-orange-300 text-orange-600 hover:bg-orange-50"
+                    disabled={selectedOrder?.status === 'annulee'}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Annuler la commande
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Supprimer la commande
+                  </Button>
+                </div>
               </div>
             )}
           </DialogContent>
-          </Dialog>
+        </Dialog>
 
-          <EditOrderDialog
+        {/* Cancel Dialog */}
+        <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Annuler la commande</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-gray-600">
+                Veuillez indiquer la raison de l'annulation de la commande {selectedOrder?.order_number}
+              </p>
+              <Textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Raison de l'annulation..."
+                className="border-[#DFD3C3]"
+                rows={4}
+              />
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setCancelDialogOpen(false);
+                    setCancelReason("");
+                  }}
+                  className="flex-1"
+                >
+                  Retour
+                </Button>
+                <Button
+                  onClick={handleCancelOrder}
+                  disabled={updateStatusMutation.isPending}
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                >
+                  {updateStatusMutation.isPending ? "Annulation..." : "Confirmer l'annulation"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Supprimer la commande</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-gray-600">
+                Veuillez indiquer la raison de la suppression de la commande {selectedOrder?.order_number}
+              </p>
+              <p className="text-sm text-red-600 font-semibold">
+                ⚠️ Cette action est irréversible et supprimera définitivement la commande.
+              </p>
+              <Textarea
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                placeholder="Raison de la suppression..."
+                className="border-[#DFD3C3]"
+                rows={4}
+              />
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDeleteDialogOpen(false);
+                    setDeleteReason("");
+                  }}
+                  className="flex-1"
+                >
+                  Retour
+                </Button>
+                <Button
+                  onClick={handleDeleteOrder}
+                  disabled={deleteOrderMutation.isPending}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {deleteOrderMutation.isPending ? "Suppression..." : "Confirmer la suppression"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <EditOrderDialog
           order={editingOrder}
           orderLines={editingOrderLines}
           onClose={() => {
