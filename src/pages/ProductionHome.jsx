@@ -176,29 +176,27 @@ export default function ProductionHome() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-[#F8EDE3] to-white">
-            <CardContent className="p-6 flex flex-col gap-2">
-              <Link to={createPageUrl("Production")} className="w-full">
-                <Button className="w-full bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Planning complet
-                </Button>
-              </Link>
-              <Link to={createPageUrl("DeliveryPrep")} className="w-full">
-                <Button variant="outline" className="w-full border-[#DFD3C3]">
-                  <Truck className="w-4 h-4 mr-2" />
-                  Préparation livraison
-                </Button>
-              </Link>
+          <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-green-50 to-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Quantité totale</p>
+                  <p className="text-4xl font-bold text-green-600">
+                    {productionList.reduce((sum, item) => sum + item.quantity, 0)}
+                  </p>
+                </div>
+                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
+                  <TrendingUp className="w-8 h-8 text-green-600" />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
 
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="products">Production du jour</TabsTrigger>
             <TabsTrigger value="shops">Par boutique</TabsTrigger>
-            <TabsTrigger value="delivery">Préparation livraison</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products">
@@ -266,100 +264,7 @@ export default function ProductionHome() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="delivery">
-            <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90">
-              <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
-                <CardTitle className="flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-[#C98F75]" />
-                  Chargement des livraisons
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                {deliveryList.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 text-lg">Aucune livraison prévue aujourd'hui</p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {deliveryList.map(({ shop, products, totalItems }) => {
-                      const progress = getProgress(shop.id, products);
-                      const isComplete = progress.percentage === 100;
 
-                      return (
-                        <Card key={shop.id} className="border-[#DFD3C3]/30">
-                          <CardHeader className={`border-b border-[#DFD3C3]/30 ${isComplete ? 'bg-green-50' : 'bg-[#F8EDE3]/50'}`}>
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-3">
-                                <div className={`w-10 h-10 ${isComplete ? 'bg-green-500' : 'bg-gradient-to-br from-[#E0A890] to-[#C98F75]'} rounded-xl flex items-center justify-center`}>
-                                  {isComplete ? (
-                                    <CheckCircle2 className="w-5 h-5 text-white" />
-                                  ) : (
-                                    <Package className="w-5 h-5 text-white" />
-                                  )}
-                                </div>
-                                <div>
-                                  <h3 className="font-semibold text-lg">{shop.name}</h3>
-                                  <p className="text-xs text-gray-600">{totalItems} articles</p>
-                                </div>
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {progress.checked} / {progress.total} chargés
-                              </div>
-                            </div>
-                            {!isComplete && (
-                              <div className="mt-3">
-                                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                  <div 
-                                    className="h-full bg-gradient-to-r from-[#E0A890] to-[#C98F75] transition-all duration-300"
-                                    style={{ width: `${progress.percentage}%` }}
-                                  />
-                                </div>
-                              </div>
-                            )}
-                          </CardHeader>
-                          <CardContent className="p-4">
-                            <div className="space-y-2">
-                              {products.map(product => {
-                                const isChecked = checkedItems[`${shop.id}-${product.name}`];
-                                return (
-                                  <div 
-                                    key={product.name}
-                                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                                      isChecked 
-                                        ? 'bg-green-50 border-green-200' 
-                                        : 'bg-white border-[#DFD3C3]/30'
-                                    }`}
-                                  >
-                                    <Checkbox
-                                      id={`${shop.id}-${product.name}`}
-                                      checked={isChecked}
-                                      onCheckedChange={() => handleToggle(shop.id, product.name)}
-                                    />
-                                    <label
-                                      htmlFor={`${shop.id}-${product.name}`}
-                                      className="flex-1 flex justify-between items-center cursor-pointer"
-                                    >
-                                      <span className={`font-medium ${isChecked ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                                        {product.name}
-                                      </span>
-                                      <span className={`font-bold ${isChecked ? 'text-green-600' : 'text-[#C98F75]'}`}>
-                                        {product.quantity}x
-                                      </span>
-                                    </label>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
 
         {/* Shop Orders Dialog */}
