@@ -86,6 +86,16 @@ export default function OrdersList() {
     onError: () => toast.error("Erreur lors de la mise à jour")
   });
 
+  useEffect(() => {
+    if (selectedOrder) {
+      // Synchroniser tempStatus avec le statut actuel de la commande
+      const currentOrder = orders.find(o => o.id === selectedOrder.id);
+      if (currentOrder && currentOrder.status !== tempStatus) {
+        setTempStatus(currentOrder.status);
+      }
+    }
+  }, [orders, selectedOrder]);
+
   const handleViewDetails = async (order) => {
     setSelectedOrder(order);
     setTempStatus(order.status || 'enregistree');
