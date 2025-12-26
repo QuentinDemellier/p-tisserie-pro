@@ -167,9 +167,14 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               </div>
               <button
-                onClick={() => {
-                  base44.auth.logout();
-                  window.location.href = createPageUrl("Home");
+                onClick={async () => {
+                  try {
+                    await base44.auth.logout();
+                    window.location.href = createPageUrl("Home");
+                  } catch (error) {
+                    console.error("Erreur de déconnexion:", error);
+                    window.location.href = createPageUrl("Home");
+                  }
                 }}
                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-[#C98F75] hover:bg-[#E0A890]/10 rounded-lg transition-colors"
               >
