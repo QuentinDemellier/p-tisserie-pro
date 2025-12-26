@@ -74,20 +74,12 @@ export default function Production() {
   return (
     <div className="p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-              <Factory className="w-8 h-8 text-[#C98F75]" />
-              Tableau de bord production
-            </h1>
-            <p className="text-gray-600">Planifiez votre production</p>
-          </div>
-          <Link to={createPageUrl("CatalogProducts")}>
-            <Button className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">
-              <Cake className="w-4 h-4 mr-2" />
-              Catalogue produits
-            </Button>
-          </Link>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+            <Factory className="w-8 h-8 text-[#C98F75]" />
+            Tableau de bord production
+          </h1>
+          <p className="text-gray-600">Planifiez votre production</p>
         </div>
 
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
