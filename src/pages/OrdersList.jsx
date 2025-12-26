@@ -93,10 +93,16 @@ export default function OrdersList() {
 
   useEffect(() => {
     if (selectedOrder) {
-      // Synchroniser tempStatus avec le statut actuel de la commande
+      // Synchroniser selectedOrder et tempStatus avec les données actuelles
       const currentOrder = orders.find(o => o.id === selectedOrder.id);
-      if (currentOrder && currentOrder.status !== tempStatus) {
-        setTempStatus(currentOrder.status);
+      if (currentOrder) {
+        if (currentOrder.status !== tempStatus) {
+          setTempStatus(currentOrder.status);
+        }
+        // Mettre à jour selectedOrder avec les dernières données
+        if (JSON.stringify(currentOrder) !== JSON.stringify(selectedOrder)) {
+          setSelectedOrder(currentOrder);
+        }
       }
     }
   }, [orders, selectedOrder]);
