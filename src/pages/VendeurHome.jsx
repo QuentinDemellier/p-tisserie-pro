@@ -127,7 +127,7 @@ export default function VendeurHome() {
           )}
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-blue-50 to-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -156,16 +156,7 @@ export default function VendeurHome() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-[#F8EDE3] to-white">
-            <CardContent className="p-6 flex items-center justify-center">
-              <Link to={createPageUrl("NewOrder")} className="w-full">
-                <Button className="w-full h-full bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white text-lg py-6">
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Nouvelle commande
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+
         </div>
 
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm">
