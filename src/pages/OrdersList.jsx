@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Calendar, Store, Eye, Download, Trash2 } from "lucide-react";
+import { Search, Calendar, Store, Eye, Download, Trash2, Pencil, X } from "lucide-react";
+import EditOrderDialog from "../components/order/EditOrderDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -23,6 +24,8 @@ export default function OrdersList() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderLines, setOrderLines] = useState([]);
   const [statusHistory, setStatusHistory] = useState([]);
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [editingOrderLines, setEditingOrderLines] = useState([]);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -85,28 +88,47 @@ export default function OrdersList() {
 
   const handleViewDetails = async (order) => {
     setSelectedOrder(order);
-    setTempStatus(order.status || 'en_cours');
+    setTempStatus(order.status || 'enregistree');
     const lines = await base44.entities.OrderLine.filter({ order_id: order.id });
     setOrderLines(lines);
     const history = await base44.entities.OrderStatusHistory.filter({ order_id: order.id }, '-created_date');
     setStatusHistory(history);
   };
 
+  const handleEditOrder = async (order) => {
+    const lines = await base44.entities.OrderLine.filter({ order_id: order.id });
+    setEditingOrder(order);
+    setEditingOrderLines(lines);
+  };
+
+  const handleCancelOrder = async (order) => {
+    if (confirm("Êtes-vous sûr de vouloir annuler cette commande ?")) {
+      await updateStatusMutation.mutateAsync({ 
+        id: order.id, 
+        status: 'annulee', 
+        oldStatus: order.status 
+      });
+      setSelectedOrder(null);
+    }
+  };
+
   const getStatusColor = (status) => {
     const colors = {
-      en_cours: "bg-blue-100 text-blue-800 border-blue-200",
-      prete: "bg-green-100 text-green-800 border-green-200",
-      retiree: "bg-gray-100 text-gray-800 border-gray-200",
+      enregistree: "bg-blue-100 text-blue-800 border-blue-200",
+      enregistree_modifiee: "bg-orange-100 text-orange-800 border-orange-200",
+      en_livraison: "bg-purple-100 text-purple-800 border-purple-200",
+      recuperee: "bg-green-100 text-green-800 border-green-200",
       annulee: "bg-red-100 text-red-800 border-red-200"
     };
-    return colors[status] || colors.en_cours;
+    return colors[status] || colors.enregistree;
   };
 
   const getStatusLabel = (status) => {
     const labels = {
-      en_cours: "En cours",
-      prete: "Prête",
-      retiree: "Récupérée",
+      enregistree: "Enregistrée",
+      enregistree_modifiee: "Enregistrée - modifiée",
+      en_livraison: "En livraison",
+      recuperee: "Récupérée",
       annulee: "Annulée"
     };
     return labels[status] || status;
@@ -257,14 +279,24 @@ export default function OrdersList() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewDetails(order)}
-                              className="hover:bg-[#E0A890]/10"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditOrder(order)}
+                                className="hover:bg-[#E0A890]/10"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleViewDetails(order)}
+                                className="hover:bg-[#E0A890]/10"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -281,18 +313,30 @@ export default function OrdersList() {
             <DialogHeader>
               <DialogTitle className="text-2xl flex items-center justify-between">
                 <span>Détails de la commande {selectedOrder?.order_number}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    if (confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) {
-                      deleteOrderMutation.mutate(selectedOrder.id);
-                    }
-                  }}
-                  className="text-red-600 hover:bg-red-50"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleCancelOrder(selectedOrder)}
+                    className="text-orange-600 hover:bg-orange-50"
+                    title="Annuler la commande"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      if (confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) {
+                        deleteOrderMutation.mutate(selectedOrder.id);
+                      }
+                    }}
+                    className="text-red-600 hover:bg-red-50"
+                    title="Supprimer la commande"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </Button>
+                </div>
               </DialogTitle>
             </DialogHeader>
             
@@ -328,14 +372,15 @@ export default function OrdersList() {
                           <SelectContent>
                             {(user?.user_role === 'vendeur' || user?.user_role === 'boutique') ? (
                               <>
-                                <SelectItem value="retiree">Récupérée</SelectItem>
+                                <SelectItem value="recuperee">Récupérée</SelectItem>
                                 <SelectItem value="annulee">Annulée</SelectItem>
                               </>
                             ) : (
                               <>
-                                <SelectItem value="en_cours">En cours</SelectItem>
-                                <SelectItem value="prete">Prête</SelectItem>
-                                <SelectItem value="retiree">Récupérée</SelectItem>
+                                <SelectItem value="enregistree">Enregistrée</SelectItem>
+                                <SelectItem value="enregistree_modifiee">Enregistrée - modifiée</SelectItem>
+                                <SelectItem value="en_livraison">En livraison</SelectItem>
+                                <SelectItem value="recuperee">Récupérée</SelectItem>
                                 <SelectItem value="annulee">Annulée</SelectItem>
                               </>
                             )}
@@ -406,8 +451,17 @@ export default function OrdersList() {
               </div>
             )}
           </DialogContent>
-        </Dialog>
-      </div>
-    </div>
-  );
-}
+          </Dialog>
+
+          <EditOrderDialog
+          order={editingOrder}
+          orderLines={editingOrderLines}
+          onClose={() => {
+            setEditingOrder(null);
+            setEditingOrderLines([]);
+          }}
+          />
+          </div>
+          </div>
+          );
+          }

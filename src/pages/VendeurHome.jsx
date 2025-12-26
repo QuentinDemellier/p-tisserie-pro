@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ShoppingCart, Calendar, CheckCircle2, Package } from "lucide-react";
+import { ShoppingCart, Calendar, CheckCircle2, Package, Pencil } from "lucide-react";
+import EditOrderDialog from "../components/order/EditOrderDialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -20,6 +21,8 @@ export default function VendeurHome() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderLines, setOrderLines] = useState([]);
   const [optimisticStatus, setOptimisticStatus] = useState({});
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [editingOrderLines, setEditingOrderLines] = useState([]);
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
@@ -81,6 +84,12 @@ export default function VendeurHome() {
     setOrderLines(lines);
   };
 
+  const handleEditOrder = async (order) => {
+    const lines = await base44.entities.OrderLine.filter({ order_id: order.id });
+    setEditingOrder(order);
+    setEditingOrderLines(lines);
+  };
+
   const userShopId = user?.assigned_shop_id;
   const userShop = shops.find(s => s.id === userShopId);
 
@@ -93,23 +102,27 @@ export default function VendeurHome() {
   const completedToday = orders.filter(order => 
     order.pickup_date === today && 
     order.shop_id === userShopId &&
-    order.status === 'retiree'
+    order.status === 'recuperee'
   ).length;
 
   const getStatusColor = (status) => {
     const colors = {
-      en_cours: "bg-blue-100 text-blue-800",
-      prete: "bg-green-100 text-green-800",
-      retiree: "bg-gray-100 text-gray-800"
+      enregistree: "bg-blue-100 text-blue-800",
+      enregistree_modifiee: "bg-orange-100 text-orange-800",
+      en_livraison: "bg-purple-100 text-purple-800",
+      recuperee: "bg-green-100 text-green-800",
+      annulee: "bg-red-100 text-red-800"
     };
-    return colors[status] || colors.en_cours;
+    return colors[status] || colors.enregistree;
   };
 
   const getStatusLabel = (status) => {
     const labels = {
-      en_cours: "En cours",
-      prete: "Prête",
-      retiree: "Retirée"
+      enregistree: "Enregistrée",
+      enregistree_modifiee: "Enregistrée - modifiée",
+      en_livraison: "En livraison",
+      recuperee: "Récupérée",
+      annulee: "Annulée"
     };
     return labels[status] || status;
   };
@@ -176,7 +189,7 @@ export default function VendeurHome() {
               <div className="space-y-4">
                 {todayOrders.map(order => {
                   const currentStatus = optimisticStatus[order.id] !== undefined ? optimisticStatus[order.id] : order.status;
-                  const isCompleted = currentStatus === 'retiree';
+                  const isCompleted = currentStatus === 'recuperee';
                   return (
                   <Card key={order.id} className={`border-[#DFD3C3]/30 hover:shadow-md transition-shadow ${isCompleted ? 'opacity-50 bg-gray-50' : ''}`}>
                     <CardContent className="p-4">
@@ -187,17 +200,17 @@ export default function VendeurHome() {
                            checked={isCompleted}
                            onCheckedChange={(checked) => {
                              if (checked) {
-                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'retiree' }));
+                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'recuperee' }));
                                updateStatusMutation.mutate({
                                  id: order.id,
-                                 status: 'retiree',
+                                 status: 'recuperee',
                                  oldStatus: order.status
                                });
                              } else {
-                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'prete' }));
+                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'enregistree' }));
                                updateStatusMutation.mutate({
                                  id: order.id,
-                                 status: 'prete',
+                                 status: 'enregistree',
                                  oldStatus: order.status
                                });
                              }
@@ -224,10 +237,18 @@ export default function VendeurHome() {
                           {order.total_amount.toFixed(2)} €
                         </p>
                       </div>
-                      <div className="w-full sm:w-auto">
+                      <div className="w-full sm:w-auto flex gap-2">
                         <Button 
                           variant="outline" 
-                          className="border-[#DFD3C3] w-full sm:w-auto text-sm"
+                          size="icon"
+                          className="border-[#DFD3C3]"
+                          onClick={() => handleEditOrder(order)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="border-[#DFD3C3] flex-1 sm:flex-none text-sm"
                           onClick={() => handleViewDetails(order)}
                         >
                           Voir détails
@@ -311,7 +332,16 @@ export default function VendeurHome() {
             )}
           </DialogContent>
         </Dialog>
-      </div>
-    </div>
-  );
-}
+
+        <EditOrderDialog
+          order={editingOrder}
+          orderLines={editingOrderLines}
+          onClose={() => {
+            setEditingOrder(null);
+            setEditingOrderLines([]);
+          }}
+        />
+        </div>
+        </div>
+        );
+        }

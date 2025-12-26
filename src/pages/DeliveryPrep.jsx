@@ -123,7 +123,7 @@ export default function DeliveryPrep() {
       for (const order of shopOrders) {
         const lines = orderLines.filter(line => line.order_id === order.id);
         const hasProduct = lines.some(line => line.product_name === productName);
-        if (hasProduct && order.status === 'prete') {
+        if (hasProduct && (order.status === 'enregistree' || order.status === 'enregistree_modifiee')) {
           await updateOrderStatusMutation.mutateAsync({
             orderId: order.id,
             status: 'en_livraison'
