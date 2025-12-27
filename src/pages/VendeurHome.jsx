@@ -288,12 +288,30 @@ export default function VendeurHome() {
                     <div className="space-y-1">
                       <p><span className="font-medium">Boutique :</span> {userShop?.name}</p>
                       <p><span className="font-medium">Date :</span> {format(new Date(selectedOrder.pickup_date), 'dd MMMM yyyy', { locale: fr })}</p>
-                      <p>
-                        <span className="font-medium">Statut :</span>{' '}
-                        <Badge className={getStatusColor(selectedOrder.status)}>
-                          {getStatusLabel(selectedOrder.status)}
-                        </Badge>
-                      </p>
+                      <div>
+                        <Label className="text-xs text-gray-500 mb-1">Statut de la commande</Label>
+                        <Select 
+                          value={selectedOrder.status} 
+                          onValueChange={(newStatus) => {
+                            updateStatusMutation.mutate({
+                              id: selectedOrder.id,
+                              status: newStatus,
+                              oldStatus: selectedOrder.status
+                            });
+                          }}
+                        >
+                          <SelectTrigger className="mt-1 w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="enregistree">Enregistrée</SelectItem>
+                            <SelectItem value="enregistree_modifiee">Enregistrée - modifiée</SelectItem>
+                            <SelectItem value="en_livraison">En livraison</SelectItem>
+                            <SelectItem value="recuperee">Récupérée</SelectItem>
+                            <SelectItem value="annulee">Annulée</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 </div>

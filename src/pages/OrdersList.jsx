@@ -375,11 +375,30 @@ export default function OrdersList() {
                     <div className="space-y-1">
                       <p><span className="font-medium">Boutique :</span> {shops.find(s => s.id === selectedOrder.shop_id)?.name}</p>
                       <p><span className="font-medium">Date :</span> {format(new Date(selectedOrder.pickup_date), 'dd MMMM yyyy', { locale: fr })}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Statut :</span>
-                        <Badge className={getStatusColor(tempStatus)}>
-                          {getStatusLabel(tempStatus)}
-                        </Badge>
+                      <div>
+                        <Label className="text-xs text-gray-500 mb-1">Statut de la commande</Label>
+                        <Select 
+                          value={tempStatus} 
+                          onValueChange={(newStatus) => {
+                            setTempStatus(newStatus);
+                            updateStatusMutation.mutate({
+                              id: selectedOrder.id,
+                              status: newStatus,
+                              oldStatus: selectedOrder.status
+                            });
+                          }}
+                        >
+                          <SelectTrigger className="mt-1 w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="enregistree">Enregistrée</SelectItem>
+                            <SelectItem value="enregistree_modifiee">Enregistrée - modifiée</SelectItem>
+                            <SelectItem value="en_livraison">En livraison</SelectItem>
+                            <SelectItem value="recuperee">Récupérée</SelectItem>
+                            <SelectItem value="annulee">Annulée</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>
