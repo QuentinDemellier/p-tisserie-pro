@@ -229,6 +229,7 @@ export default function Home() {
                     <p>• <strong>Vendeurs :</strong> Chaque boutique dispose de son propre identifiant de connexion</p>
                     <p>• <strong>Production :</strong> Un identifiant unique pour accéder au laboratoire</p>
                     <p>• <strong>Administration :</strong> Accès complet à tous les espaces</p>
+                    
                   </div>
                 </div>
               </div>
