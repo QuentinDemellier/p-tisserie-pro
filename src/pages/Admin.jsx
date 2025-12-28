@@ -825,20 +825,20 @@ export default function Admin() {
                 <div>
                   <Label>Boutique assignée</Label>
                   <Select 
-                    value={userFormData.assigned_shop_id || "none"} 
-                    onValueChange={(value) => setUserFormData({...userFormData, assigned_shop_id: value === "none" ? "" : value})}
+                    value={userFormData.assigned_shop_id} 
+                    onValueChange={(value) => setUserFormData({...userFormData, assigned_shop_id: value})}
                   >
                     <SelectTrigger className="mt-2">
                       <SelectValue placeholder="Aucune boutique assignée" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Aucune boutique</SelectItem>
+                      <SelectItem value={null}>Aucune boutique</SelectItem>
                       {shops.filter(s => s.active !== false).map(shop => (
                         <SelectItem key={shop.id} value={shop.id}>{shop.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-gray-500 mt-1">Pour les vendeurs/boutiques uniquement - Production et Admin n'ont pas besoin de boutique</p>
+                  <p className="text-xs text-gray-500 mt-1">Pour les rôles "boutique", limite l'accès aux commandes de cette boutique</p>
                 </div>
 
                 <div className="flex gap-3 pt-4">
