@@ -60,7 +60,7 @@ export default function VendeurHome() {
         return newState;
       });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      if (variables.status === 'retiree') {
+      if (variables.status === 'Récupérée') {
         confetti({
           particleCount: 100,
           spread: 70,
@@ -98,35 +98,28 @@ export default function VendeurHome() {
   const todayOrders = orders.filter(order => 
     order.pickup_date === today && 
     order.shop_id === userShopId &&
-    order.status !== 'annulee'
+    order.status !== 'Annulée'
   );
 
   const completedToday = orders.filter(order => 
     order.pickup_date === today && 
     order.shop_id === userShopId &&
-    order.status === 'recuperee'
+    order.status === 'Récupérée'
   ).length;
 
   const getStatusColor = (status) => {
     const colors = {
-      enregistree: "bg-blue-100 text-blue-800",
-      enregistree_modifiee: "bg-orange-100 text-orange-800",
-      en_livraison: "bg-purple-100 text-purple-800",
-      recuperee: "bg-green-100 text-green-800",
-      annulee: "bg-red-100 text-red-800"
+      "Enregistrée": "bg-blue-100 text-blue-800",
+      "Modifiée": "bg-orange-100 text-orange-800",
+      "En livraison": "bg-purple-100 text-purple-800",
+      "Récupérée": "bg-green-100 text-green-800",
+      "Annulée": "bg-red-100 text-red-800"
     };
-    return colors[status] || colors.enregistree;
+    return colors[status] || colors["Enregistrée"];
   };
 
   const getStatusLabel = (status) => {
-    const labels = {
-      enregistree: "Enregistrée",
-      enregistree_modifiee: "Enregistrée - modifiée",
-      en_livraison: "En livraison",
-      recuperee: "Récupérée",
-      annulee: "Annulée"
-    };
-    return labels[status] || status;
+    return status;
   };
 
   return (
@@ -191,7 +184,7 @@ export default function VendeurHome() {
               <div className="space-y-4">
                 {todayOrders.map(order => {
                   const currentStatus = optimisticStatus[order.id] !== undefined ? optimisticStatus[order.id] : order.status;
-                  const isCompleted = currentStatus === 'recuperee';
+                  const isCompleted = currentStatus === 'Récupérée';
                   return (
                   <Card key={order.id} className={`border-[#DFD3C3]/30 hover:shadow-md transition-shadow ${isCompleted ? 'opacity-50 bg-gray-50' : ''}`}>
                     <CardContent className="p-4">
@@ -202,17 +195,17 @@ export default function VendeurHome() {
                            checked={isCompleted}
                            onCheckedChange={(checked) => {
                              if (checked) {
-                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'recuperee' }));
+                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'Récupérée' }));
                                updateStatusMutation.mutate({
                                  id: order.id,
-                                 status: 'recuperee',
+                                 status: 'Récupérée',
                                  oldStatus: order.status
                                });
                              } else {
-                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'enregistree' }));
+                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'Enregistrée' }));
                                updateStatusMutation.mutate({
                                  id: order.id,
-                                 status: 'enregistree',
+                                 status: 'Enregistrée',
                                  oldStatus: order.status
                                });
                              }
@@ -306,11 +299,11 @@ export default function VendeurHome() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="enregistree">Enregistrée</SelectItem>
-                            <SelectItem value="enregistree_modifiee">Enregistrée - modifiée</SelectItem>
-                            <SelectItem value="en_livraison">En livraison</SelectItem>
-                            <SelectItem value="recuperee">Récupérée</SelectItem>
-                            <SelectItem value="annulee">Annulée</SelectItem>
+                            <SelectItem value="Enregistrée">Enregistrée</SelectItem>
+                            <SelectItem value="Modifiée">Modifiée</SelectItem>
+                            <SelectItem value="En livraison">En livraison</SelectItem>
+<parameter value="Récupérée">Récupérée</SelectItem>
+                            <SelectItem value="Annulée">Annulée</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

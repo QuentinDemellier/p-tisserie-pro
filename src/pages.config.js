@@ -1,29 +1,29 @@
+import Admin from './pages/Admin';
+import AdminHome from './pages/AdminHome';
+import CatalogProducts from './pages/CatalogProducts';
+import DeliveryPrep from './pages/DeliveryPrep';
+import Home from './pages/Home';
 import NewOrder from './pages/NewOrder';
 import OrdersList from './pages/OrdersList';
 import Production from './pages/Production';
-import CatalogProducts from './pages/CatalogProducts';
-import Admin from './pages/Admin';
-import Home from './pages/Home';
-import VendeurHome from './pages/VendeurHome';
 import ProductionHome from './pages/ProductionHome';
-import AdminHome from './pages/AdminHome';
-import DeliveryPrep from './pages/DeliveryPrep';
 import Reports from './pages/Reports';
+import VendeurHome from './pages/VendeurHome';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Admin": Admin,
+    "AdminHome": AdminHome,
+    "CatalogProducts": CatalogProducts,
+    "DeliveryPrep": DeliveryPrep,
+    "Home": Home,
     "NewOrder": NewOrder,
     "OrdersList": OrdersList,
     "Production": Production,
-    "CatalogProducts": CatalogProducts,
-    "Admin": Admin,
-    "Home": Home,
-    "VendeurHome": VendeurHome,
     "ProductionHome": ProductionHome,
-    "AdminHome": AdminHome,
-    "DeliveryPrep": DeliveryPrep,
     "Reports": Reports,
+    "VendeurHome": VendeurHome,
 }
 
 export const pagesConfig = {

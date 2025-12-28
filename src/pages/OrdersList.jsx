@@ -110,7 +110,7 @@ export default function OrdersList() {
 
   const handleViewDetails = async (order) => {
     setSelectedOrder(order);
-    setTempStatus(order.status || 'enregistree');
+    setTempStatus(order.status || 'Enregistrée');
     const lines = await base44.entities.OrderLine.filter({ order_id: order.id });
     setOrderLines(lines);
     const history = await base44.entities.OrderStatusHistory.filter({ order_id: order.id }, '-created_date');
@@ -130,13 +130,13 @@ export default function OrdersList() {
     }
     await updateStatusMutation.mutateAsync({ 
       id: selectedOrder.id, 
-      status: 'annulee', 
+      status: 'Annulée', 
       oldStatus: selectedOrder.status 
     });
     await base44.entities.OrderStatusHistory.create({
       order_id: selectedOrder.id,
       old_status: selectedOrder.status,
-      new_status: 'annulee',
+      new_status: 'Annulée',
       changed_by: user?.email || "inconnu",
       comment: cancelReason
     });
@@ -158,24 +158,17 @@ export default function OrdersList() {
 
   const getStatusColor = (status) => {
     const colors = {
-      enregistree: "bg-blue-100 text-blue-800 border-blue-200",
-      enregistree_modifiee: "bg-orange-100 text-orange-800 border-orange-200",
-      en_livraison: "bg-purple-100 text-purple-800 border-purple-200",
-      recuperee: "bg-green-100 text-green-800 border-green-200",
-      annulee: "bg-red-100 text-red-800 border-red-200"
+      "Enregistrée": "bg-blue-100 text-blue-800 border-blue-200",
+      "Modifiée": "bg-orange-100 text-orange-800 border-orange-200",
+      "En livraison": "bg-purple-100 text-purple-800 border-purple-200",
+      "Récupérée": "bg-green-100 text-green-800 border-green-200",
+      "Annulée": "bg-red-100 text-red-800 border-red-200"
     };
-    return colors[status] || colors.enregistree;
+    return colors[status] || colors["Enregistrée"];
   };
 
   const getStatusLabel = (status) => {
-    const labels = {
-      enregistree: "Enregistrée",
-      enregistree_modifiee: "Enregistrée - modifiée",
-      en_livraison: "En livraison",
-      recuperee: "Récupérée",
-      annulee: "Annulée"
-    };
-    return labels[status] || status;
+    return status;
   };
 
   const exportToCSV = () => {
@@ -393,11 +386,11 @@ export default function OrdersList() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="enregistree">Enregistrée</SelectItem>
-                            <SelectItem value="enregistree_modifiee">Enregistrée - modifiée</SelectItem>
-                            <SelectItem value="en_livraison">En livraison</SelectItem>
-                            <SelectItem value="recuperee">Récupérée</SelectItem>
-                            <SelectItem value="annulee">Annulée</SelectItem>
+                            <SelectItem value="Enregistrée">Enregistrée</SelectItem>
+                            <SelectItem value="Modifiée">Modifiée</SelectItem>
+                            <SelectItem value="En livraison">En livraison</SelectItem>
+                            <SelectItem value="Récupérée">Récupérée</SelectItem>
+                            <SelectItem value="Annulée">Annulée</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -468,7 +461,7 @@ export default function OrdersList() {
                     variant="outline"
                     onClick={() => setCancelDialogOpen(true)}
                     className="flex-1 border-orange-300 text-orange-600 hover:bg-orange-50"
-                    disabled={selectedOrder?.status === 'annulee'}
+                    disabled={selectedOrder?.status === 'Annulée'}
                   >
                     <X className="w-4 h-4 mr-2" />
                     Annuler la commande
