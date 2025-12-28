@@ -82,7 +82,7 @@ export default function Home() {
   const spaces = [
     {
       id: 'vendeurs',
-      title: 'Espace Vendeurs',
+      title: 'Espace test',
       description: 'Créer et gérer les commandes clients',
       subtitle: 'Connexion avec identifiant boutique',
       icon: ShoppingCart,
