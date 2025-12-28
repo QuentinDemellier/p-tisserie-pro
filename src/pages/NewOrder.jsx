@@ -131,19 +131,24 @@ L'équipe de la Pâtisserie
 
   const addToCart = (product) => {
     const existingItem = cart.find(item => item.id === product.id);
+    const stockLimit = product.stock_limit || 0;
     const currentStock = product.current_stock || 0;
+    const hasUnlimitedStock = stockLimit === 0;
     const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
     
-    // Vérifier si le produit est en rupture de stock
-    if (currentStock === 0) {
-      toast.error(`${product.name} est en rupture de stock`);
-      return;
-    }
-    
-    // Vérifier si on peut ajouter une unité de plus
-    if (currentQuantityInCart + 1 > currentStock) {
-      toast.error(`Stock insuffisant pour ${product.name}. Stock disponible : ${currentStock}`);
-      return;
+    // Si le stock est illimité, pas de vérification
+    if (!hasUnlimitedStock) {
+      // Vérifier si le produit est en rupture de stock
+      if (currentStock === 0) {
+        toast.error(`${product.name} est en rupture de stock`);
+        return;
+      }
+      
+      // Vérifier si on peut ajouter une unité de plus
+      if (currentQuantityInCart + 1 > currentStock) {
+        toast.error(`Stock insuffisant pour ${product.name}. Stock disponible : ${currentStock}`);
+        return;
+      }
     }
     
     if (existingItem) {
@@ -158,10 +163,12 @@ L'équipe de la Pâtisserie
     const item = cart.find(i => i.id === productId);
     if (!item) return;
     
+    const stockLimit = item.stock_limit || 0;
     const currentStock = item.current_stock || 0;
+    const hasUnlimitedStock = stockLimit === 0;
     
-    // Vérifier le stock avant de mettre à jour
-    if (quantity > currentStock) {
+    // Vérifier le stock avant de mettre à jour (sauf si illimité)
+    if (!hasUnlimitedStock && quantity > currentStock) {
       toast.error(`Stock insuffisant pour ${item.name}. Stock disponible : ${currentStock}`);
       return;
     }
