@@ -107,7 +107,7 @@ L'équipe de la Pâtisserie
         spread: 100,
         origin: { y: 0.6 }
       });
-      toast.success("La commande a bien été enregistrée", {
+      toast.success("Commande enregistrée !", {
         description: `Numéro de commande : ${orderNumber}`,
         duration: 5000,
         icon: "✓"
