@@ -302,7 +302,7 @@ export default function VendeurHome() {
                             <SelectItem value="Enregistrée">Enregistrée</SelectItem>
                             <SelectItem value="Modifiée">Modifiée</SelectItem>
                             <SelectItem value="En livraison">En livraison</SelectItem>
-<parameter value="Récupérée">Récupérée</SelectItem>
+                            <SelectItem value="Récupérée">Récupérée</SelectItem>
                             <SelectItem value="Annulée">Annulée</SelectItem>
                           </SelectContent>
                         </Select>
