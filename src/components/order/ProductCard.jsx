@@ -1,17 +1,22 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ProductCard({ product, onAdd }) {
+  const currentStock = product.current_stock || 0;
+  const isOutOfStock = currentStock === 0;
+  const isLowStock = currentStock > 0 && currentStock <= 10;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-[#DFD3C3]/30 bg-white/90 backdrop-blur-sm h-full">
+      <Card className={`group overflow-hidden hover:shadow-xl transition-all duration-300 border-[#DFD3C3]/30 bg-white/90 backdrop-blur-sm h-full ${isOutOfStock ? 'opacity-60' : ''}`}>
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-[#F8EDE3] to-[#DFD3C3]">
           {product.image_url ? (
             <img
@@ -25,6 +30,20 @@ export default function ProductCard({ product, onAdd }) {
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          {/* Badge de stock */}
+          {isOutOfStock && (
+            <Badge className="absolute top-3 right-3 bg-red-600 text-white border-none shadow-lg">
+              <AlertCircle className="w-3 h-3 mr-1" />
+              Rupture de stock
+            </Badge>
+          )}
+          {isLowStock && (
+            <Badge className="absolute top-3 right-3 bg-orange-500 text-white border-none shadow-lg">
+              <AlertCircle className="w-3 h-3 mr-1" />
+              Stock faible
+            </Badge>
+          )}
         </div>
         <CardContent className="p-5">
           <h3 className="font-bold text-base text-gray-800 mb-2">
@@ -41,7 +60,8 @@ export default function ProductCard({ product, onAdd }) {
             </span>
             <Button
               onClick={() => onAdd(product)}
-              className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white shadow-lg hover:shadow-xl transition-all duration-300"
+              disabled={isOutOfStock}
+              className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               size="icon"
             >
               <Plus className="w-5 h-5" />

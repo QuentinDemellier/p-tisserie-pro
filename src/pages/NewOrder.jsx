@@ -131,6 +131,21 @@ L'équipe de la Pâtisserie
 
   const addToCart = (product) => {
     const existingItem = cart.find(item => item.id === product.id);
+    const currentStock = product.current_stock || 0;
+    const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
+    
+    // Vérifier si le produit est en rupture de stock
+    if (currentStock === 0) {
+      toast.error(`${product.name} est en rupture de stock`);
+      return;
+    }
+    
+    // Vérifier si on peut ajouter une unité de plus
+    if (currentQuantityInCart + 1 > currentStock) {
+      toast.error(`Stock insuffisant pour ${product.name}. Stock disponible : ${currentStock}`);
+      return;
+    }
+    
     if (existingItem) {
       updateQuantity(product.id, existingItem.quantity + 1);
     } else {
@@ -140,6 +155,17 @@ L'équipe de la Pâtisserie
   };
 
   const updateQuantity = (productId, quantity) => {
+    const item = cart.find(i => i.id === productId);
+    if (!item) return;
+    
+    const currentStock = item.current_stock || 0;
+    
+    // Vérifier le stock avant de mettre à jour
+    if (quantity > currentStock) {
+      toast.error(`Stock insuffisant pour ${item.name}. Stock disponible : ${currentStock}`);
+      return;
+    }
+    
     setCart(cart.map(item => 
       item.id === productId ? { ...item, quantity: Math.max(1, quantity) } : item
     ));
