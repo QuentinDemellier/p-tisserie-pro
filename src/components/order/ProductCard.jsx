@@ -27,7 +27,7 @@ export default function ProductCard({ product, onAdd }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
         <CardContent className="p-5">
-          <h3 className="font-bold text-base text-gray-800 mb-2 line-clamp-1">
+          <h3 className="font-bold text-base text-gray-800 mb-2">
             {product.name}
           </h3>
           {product.description && (
