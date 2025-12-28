@@ -195,7 +195,6 @@ export default function Admin() {
   const handleOpenProductDialog = (product = null) => {
     if (product) {
       setEditingProduct(product);
-      const unlimitedStock = (product.current_stock || 0) === 0;
       setProductFormData({
         name: product.name || "",
         price: product.price || "",
@@ -203,7 +202,7 @@ export default function Admin() {
         category_id: product.category_id || "",
         active: product.active !== false,
         current_stock: product.current_stock || 0,
-        unlimited_stock: unlimitedStock
+        unlimited_stock: product.unlimited_stock !== false
       });
     } else {
       setEditingProduct(null);
@@ -221,10 +220,9 @@ export default function Admin() {
     const data = { 
       ...productFormData, 
       price: parseFloat(productFormData.price),
-      current_stock: productFormData.unlimited_stock ? 0 : parseInt(productFormData.current_stock) || 0
+      unlimited_stock: productFormData.unlimited_stock,
+      current_stock: parseInt(productFormData.current_stock) || 0
     };
-    
-    delete data.unlimited_stock;
     
     if (editingProduct) {
       updateProductMutation.mutate({ id: editingProduct.id, data });
@@ -506,10 +504,10 @@ export default function Admin() {
                               <TableCell><Badge variant="outline" className="border-[#E0A890] text-[#C98F75]">{category?.name || '-'}</Badge></TableCell>
                               <TableCell className="font-bold text-[#C98F75]">{product.price?.toFixed(2)} €</TableCell>
                               <TableCell>
-                                {(product.current_stock || 0) === 0 ? (
+                                {product.unlimited_stock !== false ? (
                                   <Badge variant="outline" className="border-green-300 text-green-700">Illimité</Badge>
                                 ) : (
-                                  <span className="font-semibold">{product.current_stock}</span>
+                                  <span className="font-semibold">{product.current_stock || 0}</span>
                                 )}
                               </TableCell>
                               <TableCell><Badge className={product.active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>{product.active !== false ? "Actif" : "Inactif"}</Badge></TableCell>
