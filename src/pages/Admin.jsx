@@ -45,7 +45,8 @@ export default function Admin() {
   const [categoryFormData, setCategoryFormData] = useState({
     name: "",
     description: "",
-    order: 0
+    order: 0,
+    active: true
   });
 
   // Shop states
@@ -274,10 +275,10 @@ export default function Admin() {
   const handleOpenCategoryDialog = (category = null) => {
     if (category) {
       setEditingCategory(category);
-      setCategoryFormData({ name: category.name || "", description: category.description || "", order: category.order || 0 });
+      setCategoryFormData({ name: category.name || "", description: category.description || "", order: category.order || 0, active: category.active !== false });
     } else {
       setEditingCategory(null);
-      setCategoryFormData({ name: "", description: "", order: categories.length });
+      setCategoryFormData({ name: "", description: "", order: categories.length, active: true });
     }
     setCategoryDialogOpen(true);
   };
@@ -553,6 +554,7 @@ export default function Admin() {
                           <TableHead>Ordre</TableHead>
                           <TableHead>Nom</TableHead>
                           <TableHead>Description</TableHead>
+                          <TableHead>Statut</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -562,6 +564,7 @@ export default function Admin() {
                             <TableCell><div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E0A890] to-[#C98F75] flex items-center justify-center text-white font-bold">{category.order}</div></TableCell>
                             <TableCell className="font-semibold text-lg">{category.name}</TableCell>
                             <TableCell className="text-gray-600">{category.description || '-'}</TableCell>
+                            <TableCell><Badge className={category.active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>{category.active !== false ? "Active" : "Inactive"}</Badge></TableCell>
                             <TableCell className="text-right">
                               <div className="flex gap-2 justify-end">
                                 <Button variant="ghost" size="icon" onClick={() => handleOpenCategoryDialog(category)} className="hover:bg-[#E0A890]/10"><Pencil className="w-4 h-4" /></Button>
@@ -798,6 +801,10 @@ export default function Admin() {
               <div><Label>Nom *</Label><Input value={categoryFormData.name} onChange={(e) => setCategoryFormData({...categoryFormData, name: e.target.value})} className="mt-2" /></div>
               <div><Label>Description</Label><Textarea value={categoryFormData.description} onChange={(e) => setCategoryFormData({...categoryFormData, description: e.target.value})} className="mt-2" rows={3} /></div>
               <div><Label>Ordre d'affichage</Label><Input type="number" min="0" value={categoryFormData.order} onChange={(e) => setCategoryFormData({...categoryFormData, order: e.target.value})} className="mt-2" /></div>
+              <div className="flex items-center justify-between p-4 bg-[#F8EDE3]/30 rounded-lg">
+                <div><Label>Catégorie active</Label><p className="text-sm text-gray-600">Visible dans le catalogue</p></div>
+                <Switch checked={categoryFormData.active} onCheckedChange={(checked) => setCategoryFormData({...categoryFormData, active: checked})} />
+              </div>
               <div className="flex gap-3 pt-4">
                 <Button variant="outline" onClick={() => setCategoryDialogOpen(false)} className="flex-1">Annuler</Button>
                 <Button onClick={handleCategorySubmit} className="flex-1 bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">{editingCategory ? "Mettre à jour" : "Créer"}</Button>

@@ -35,10 +35,12 @@ export default function NewOrder() {
     queryFn: () => base44.entities.Product.filter({ active: true })
   });
 
-  const { data: categories = [] } = useQuery({
+  const { data: allCategories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: () => base44.entities.Category.list('order')
   });
+
+  const categories = allCategories.filter(cat => cat.active !== false);
 
   const { data: shops = [] } = useQuery({
     queryKey: ['shops'],
@@ -187,7 +189,8 @@ L'équipe de la Pâtisserie
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || product.category_id === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const categoryIsActive = allCategories.find(cat => cat.id === product.category_id)?.active !== false;
+    return matchesSearch && matchesCategory && categoryIsActive;
   });
 
   const handleSubmit = () => {
