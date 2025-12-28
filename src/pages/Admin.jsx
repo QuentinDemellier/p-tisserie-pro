@@ -879,18 +879,20 @@ export default function Admin() {
                       const shop = shops.find(s => s.id === order.shop_id);
                       const getStatusColor = (status) => {
                         const colors = {
-                          en_cours: "bg-blue-100 text-blue-800",
-                          prete: "bg-green-100 text-green-800",
-                          retiree: "bg-gray-100 text-gray-800",
+                          enregistree: "bg-blue-100 text-blue-800",
+                          enregistree_modifiee: "bg-orange-100 text-orange-800",
+                          en_livraison: "bg-purple-100 text-purple-800",
+                          recuperee: "bg-green-100 text-green-800",
                           annulee: "bg-red-100 text-red-800"
                         };
-                        return colors[status] || colors.en_cours;
+                        return colors[status] || colors.enregistree;
                       };
                       const getStatusLabel = (status) => {
                         const labels = {
-                          en_cours: "En cours",
-                          prete: "Prête",
-                          retiree: "Retirée",
+                          enregistree: "Enregistrée",
+                          enregistree_modifiee: "Enregistrée - modifiée",
+                          en_livraison: "En livraison",
+                          recuperee: "Récupérée",
                           annulee: "Annulée"
                         };
                         return labels[status] || status;
