@@ -6,11 +6,10 @@ import { Plus, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ProductCard({ product, onAdd }) {
-  const stockLimit = product.stock_limit || 0;
   const currentStock = product.current_stock || 0;
-  const hasUnlimitedStock = stockLimit === 0;
-  const isOutOfStock = !hasUnlimitedStock && currentStock === 0;
-  const isLowStock = !hasUnlimitedStock && currentStock > 0 && currentStock <= 10;
+  const hasUnlimitedStock = currentStock === 0;
+  const isOutOfStock = false; // Jamais en rupture si stock = 0 (illimité)
+  const isLowStock = currentStock > 0 && currentStock <= 10;
 
   return (
     <motion.div

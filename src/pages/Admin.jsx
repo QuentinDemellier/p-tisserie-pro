@@ -35,7 +35,6 @@ export default function Admin() {
     image_url: "",
     category_id: "",
     active: true,
-    stock_limit: 0,
     current_stock: 0,
     unlimited_stock: true
   });
@@ -196,20 +195,19 @@ export default function Admin() {
   const handleOpenProductDialog = (product = null) => {
     if (product) {
       setEditingProduct(product);
-      const unlimitedStock = (product.stock_limit || 0) === 0;
+      const unlimitedStock = (product.current_stock || 0) === 0;
       setProductFormData({
         name: product.name || "",
         price: product.price || "",
         image_url: product.image_url || "",
         category_id: product.category_id || "",
         active: product.active !== false,
-        stock_limit: product.stock_limit || 0,
         current_stock: product.current_stock || 0,
         unlimited_stock: unlimitedStock
       });
     } else {
       setEditingProduct(null);
-      setProductFormData({ name: "", price: "", image_url: "", category_id: "", active: true, stock_limit: 0, current_stock: 0, unlimited_stock: true });
+      setProductFormData({ name: "", price: "", image_url: "", category_id: "", active: true, current_stock: 0, unlimited_stock: true });
     }
     setProductDialogOpen(true);
   };
@@ -220,16 +218,12 @@ export default function Admin() {
       return;
     }
     
-    // Si stock illimité, mettre stock_limit à 0
-    // Sinon, utiliser les valeurs saisies
     const data = { 
       ...productFormData, 
       price: parseFloat(productFormData.price),
-      stock_limit: productFormData.unlimited_stock ? 0 : parseInt(productFormData.stock_limit) || 0,
       current_stock: productFormData.unlimited_stock ? 0 : parseInt(productFormData.current_stock) || 0
     };
     
-    // Retirer unlimited_stock avant de sauvegarder (ce n'est pas un champ de l'entité)
     delete data.unlimited_stock;
     
     if (editingProduct) {
@@ -512,13 +506,10 @@ export default function Admin() {
                               <TableCell><Badge variant="outline" className="border-[#E0A890] text-[#C98F75]">{category?.name || '-'}</Badge></TableCell>
                               <TableCell className="font-bold text-[#C98F75]">{product.price?.toFixed(2)} €</TableCell>
                               <TableCell>
-                                {product.stock_limit === 0 || !product.stock_limit ? (
+                                {(product.current_stock || 0) === 0 ? (
                                   <Badge variant="outline" className="border-green-300 text-green-700">Illimité</Badge>
                                 ) : (
-                                  <div className="text-sm">
-                                    <span className="font-semibold">{product.current_stock || 0}</span>
-                                    <span className="text-gray-500"> / {product.stock_limit}</span>
-                                  </div>
+                                  <span className="font-semibold">{product.current_stock}</span>
                                 )}
                               </TableCell>
                               <TableCell><Badge className={product.active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>{product.active !== false ? "Actif" : "Inactif"}</Badge></TableCell>
@@ -762,36 +753,22 @@ export default function Admin() {
                     onCheckedChange={(checked) => setProductFormData({
                       ...productFormData, 
                       unlimited_stock: checked,
-                      stock_limit: checked ? 0 : productFormData.stock_limit,
                       current_stock: checked ? 0 : productFormData.current_stock
                     })} 
                   />
                 </div>
                 
                 {!productFormData.unlimited_stock && (
-                  <div className="grid grid-cols-2 gap-4 p-4 border border-[#DFD3C3]/30 rounded-lg">
-                    <div>
-                      <Label>Limite de stock *</Label>
-                      <Input 
-                        type="number" 
-                        min="0" 
-                        value={productFormData.stock_limit} 
-                        onChange={(e) => setProductFormData({...productFormData, stock_limit: e.target.value})} 
-                        className="mt-2" 
-                        placeholder="Limite maximale"
-                      />
-                    </div>
-                    <div>
-                      <Label>Stock actuel *</Label>
-                      <Input 
-                        type="number" 
-                        min="0" 
-                        value={productFormData.current_stock} 
-                        onChange={(e) => setProductFormData({...productFormData, current_stock: e.target.value})} 
-                        className="mt-2" 
-                        placeholder="Stock disponible"
-                      />
-                    </div>
+                  <div>
+                    <Label>Stock disponible *</Label>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      value={productFormData.current_stock} 
+                      onChange={(e) => setProductFormData({...productFormData, current_stock: e.target.value})} 
+                      className="mt-2" 
+                      placeholder="Quantité en stock"
+                    />
                   </div>
                 )}
               </div>
