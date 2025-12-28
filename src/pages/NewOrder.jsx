@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart, Search, Calendar, User, Mail, Phone, CheckCircle, ArrowLeft } from "lucide-react";
+import { ShoppingCart, Search, Calendar, User, Mail, Phone, CheckCircle, ArrowLeft, Edit } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import ProductCard from "../components/order/ProductCard";
@@ -18,6 +19,7 @@ export default function NewOrder() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [step, setStep] = useState(1); // 1: catalog, 2: summary
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [orderData, setOrderData] = useState({
     shop_id: "",
     pickup_date: "",
@@ -168,6 +170,11 @@ L'équipe de la Pâtisserie
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
+    setConfirmDialogOpen(true);
+  };
+
+  const handleConfirmOrder = () => {
+    setConfirmDialogOpen(false);
     createOrderMutation.mutate(orderData);
   };
 
@@ -318,6 +325,87 @@ L'équipe de la Pâtisserie
             </Button>
           </CardContent>
         </Card>
+
+        {/* Dialog de confirmation */}
+        <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl flex items-center gap-2">
+                <CheckCircle className="w-6 h-6 text-[#C98F75]" />
+                Confirmation de la commande
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6 py-4">
+              {/* Produits sélectionnés */}
+              <div>
+                <h3 className="font-bold text-lg mb-3 text-gray-800">Produits commandés</h3>
+                <div className="space-y-2">
+                  {cart.map(item => (
+                    <div key={item.id} className="flex justify-between items-start p-3 bg-[#F8EDE3]/30 rounded-lg">
+                      <div className="flex-1">
+                        <p className="font-semibold">{item.quantity}x {item.name}</p>
+                        {item.customization && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            Personnalisation : {item.customization}
+                          </p>
+                        )}
+                      </div>
+                      <p className="font-bold text-[#C98F75] ml-4">
+                        {(item.price * item.quantity).toFixed(2)} €
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between items-center pt-3 mt-3 border-t-2 border-[#E0A890]">
+                  <span className="text-xl font-bold">Total</span>
+                  <span className="text-2xl font-bold text-[#C98F75]">
+                    {totalAmount.toFixed(2)} €
+                  </span>
+                </div>
+              </div>
+
+              {/* Informations client */}
+              <div>
+                <h3 className="font-bold text-lg mb-3 text-gray-800">Informations client</h3>
+                <div className="bg-[#F8EDE3]/30 rounded-lg p-4 space-y-2">
+                  <p><span className="font-medium">Nom :</span> {orderData.customer_firstname} {orderData.customer_name}</p>
+                  <p><span className="font-medium">Téléphone :</span> {orderData.customer_phone}</p>
+                  <p><span className="font-medium">Email :</span> {orderData.customer_email}</p>
+                </div>
+              </div>
+
+              {/* Informations de retrait */}
+              <div>
+                <h3 className="font-bold text-lg mb-3 text-gray-800">Informations de retrait</h3>
+                <div className="bg-[#F8EDE3]/30 rounded-lg p-4 space-y-2">
+                  <p><span className="font-medium">Boutique :</span> {shops.find(s => s.id === orderData.shop_id)?.name}</p>
+                  <p><span className="font-medium">Adresse :</span> {shops.find(s => s.id === orderData.shop_id)?.location}</p>
+                  <p><span className="font-medium">Date de retrait :</span> {new Date(orderData.pickup_date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</p>
+                </div>
+              </div>
+
+              {/* Boutons */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmDialogOpen(false)}
+                  className="flex-1 border-[#DFD3C3] hover:bg-[#E0A890]/10 text-base py-6"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Modifier
+                </Button>
+                <Button
+                  onClick={handleConfirmOrder}
+                  disabled={createOrderMutation.isPending}
+                  className="flex-1 bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white text-base py-6"
+                >
+                  {createOrderMutation.isPending ? "Validation..." : "Valider"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
