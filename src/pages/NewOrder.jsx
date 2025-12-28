@@ -20,6 +20,7 @@ export default function NewOrder() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [step, setStep] = useState(1); // 1: catalog, 2: summary
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [stockErrorDialogOpen, setStockErrorDialogOpen] = useState(false);
   const [orderData, setOrderData] = useState({
     shop_id: "",
     pickup_date: "",
@@ -139,7 +140,7 @@ L'équipe de la Pâtisserie
     if (!hasUnlimitedStock) {
       // Vérifier si on peut ajouter une unité de plus
       if (currentQuantityInCart + 1 > currentStock) {
-        toast.error(`Stock insuffisant pour ${product.name}. Stock disponible : ${currentStock}`);
+        setStockErrorDialogOpen(true);
         return;
       }
     }
@@ -161,7 +162,7 @@ L'équipe de la Pâtisserie
     
     // Vérifier le stock avant de mettre à jour (sauf si illimité)
     if (!hasUnlimitedStock && quantity > currentStock) {
-      toast.error(`Stock insuffisant pour ${item.name}. Stock disponible : ${currentStock}`);
+      setStockErrorDialogOpen(true);
       return;
     }
     
@@ -350,6 +351,31 @@ L'équipe de la Pâtisserie
             </Button>
           </CardContent>
         </Card>
+
+        {/* Dialog stock insuffisant */}
+        <Dialog open={stockErrorDialogOpen} onOpenChange={setStockErrorDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl text-red-600">Stock insuffisant</DialogTitle>
+            </DialogHeader>
+            <div className="py-6 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">⚠️</span>
+              </div>
+              <p className="text-gray-700 text-lg">
+                La quantité demandée dépasse le stock disponible pour ce produit.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <Button
+                onClick={() => setStockErrorDialogOpen(false)}
+                className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white px-8"
+              >
+                Compris
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Dialog de confirmation */}
         <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
@@ -550,6 +576,31 @@ L'équipe de la Pâtisserie
             </Card>
           </div>
         </div>
+
+        {/* Dialog stock insuffisant */}
+        <Dialog open={stockErrorDialogOpen} onOpenChange={setStockErrorDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl text-red-600">Stock insuffisant</DialogTitle>
+            </DialogHeader>
+            <div className="py-6 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">⚠️</span>
+              </div>
+              <p className="text-gray-700 text-lg">
+                La quantité demandée dépasse le stock disponible pour ce produit.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <Button
+                onClick={() => setStockErrorDialogOpen(false)}
+                className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white px-8"
+              >
+                Compris
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
