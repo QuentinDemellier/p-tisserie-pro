@@ -21,6 +21,7 @@ export default function NewOrder() {
   const [step, setStep] = useState(1); // 1: catalog, 2: summary
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [stockErrorDialogOpen, setStockErrorDialogOpen] = useState(false);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [orderData, setOrderData] = useState({
     shop_id: "",
     pickup_date: "",
@@ -469,9 +470,26 @@ L'équipe de la Pâtisserie
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">Nouvelle commande</h1>
-              <p className="text-gray-600">Sélectionnez vos produits</p>
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">Nouvelle commande</h1>
+                <p className="text-gray-600">Sélectionnez vos produits</p>
+              </div>
+              {/* Bouton panier mobile */}
+              <Button
+                onClick={() => setCartDrawerOpen(true)}
+                className="lg:hidden fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-2xl bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] z-50"
+                size="icon"
+              >
+                <div className="relative">
+                  <ShoppingCart className="w-6 h-6 text-white" />
+                  {cart.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {cart.length}
+                    </span>
+                  )}
+                </div>
+              </Button>
             </div>
 
             <div className="mb-6 space-y-4">
@@ -530,7 +548,8 @@ L'équipe de la Pâtisserie
             )}
           </div>
 
-          <div className="lg:w-96 lg:sticky lg:top-6">
+          {/* Panier desktop */}
+          <div className="hidden lg:block lg:w-96 lg:sticky lg:top-6">
             <Card className="border-[#DFD3C3]/30 shadow-2xl bg-white/90 backdrop-blur-sm">
               <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
                 <CardTitle className="flex items-center gap-2">
@@ -579,6 +598,59 @@ L'équipe de la Pâtisserie
             </Card>
           </div>
         </div>
+
+        {/* Drawer panier mobile */}
+        <Dialog open={cartDrawerOpen} onOpenChange={setCartDrawerOpen}>
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-[#C98F75]" />
+                Panier ({cart.length})
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              {cart.length === 0 ? (
+                <div className="py-12 text-center">
+                  <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p className="text-gray-500">Votre panier est vide</p>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-3 mb-6">
+                    {cart.map(item => (
+                      <CartItem
+                        key={item.id}
+                        item={item}
+                        onUpdateQuantity={updateQuantity}
+                        onUpdateCustomization={updateCustomization}
+                        onRemove={removeFromCart}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="border-t-2 border-[#E0A890] pt-4 mb-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xl font-bold">Total</span>
+                      <span className="text-2xl font-bold text-[#C98F75]">
+                        {totalAmount.toFixed(2)} €
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => {
+                      setCartDrawerOpen(false);
+                      setStep(2);
+                    }}
+                    className="w-full bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white text-lg py-6 shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    Finaliser la commande
+                  </Button>
+                </>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Dialog stock insuffisant */}
         <Dialog open={stockErrorDialogOpen} onOpenChange={setStockErrorDialogOpen}>
