@@ -110,16 +110,12 @@ export default function VendeurHome() {
   const getStatusColor = (status) => {
     const colors = {
       "Enregistrée": "bg-blue-100 text-blue-800",
-      "Modifiée": "bg-orange-100 text-orange-800",
+      "Enregistrée (modifiée)": "bg-orange-100 text-orange-800",
       "En livraison": "bg-purple-100 text-purple-800",
       "Récupérée": "bg-green-100 text-green-800",
       "Annulée": "bg-red-100 text-red-800"
     };
     return colors[status] || colors["Enregistrée"];
-  };
-
-  const getStatusLabel = (status) => {
-    return status;
   };
 
   return (
@@ -300,7 +296,7 @@ export default function VendeurHome() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Enregistrée">Enregistrée</SelectItem>
-                            <SelectItem value="Modifiée">Modifiée</SelectItem>
+                            <SelectItem value="Enregistrée (modifiée)">Enregistrée (modifiée)</SelectItem>
                             <SelectItem value="En livraison">En livraison</SelectItem>
                             <SelectItem value="Récupérée">Récupérée</SelectItem>
                             <SelectItem value="Annulée">Annulée</SelectItem>
