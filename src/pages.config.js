@@ -27,7 +27,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "NewOrder",
+    mainPage: "Home",
     Pages: PAGES,
     Layout: __Layout,
 };
