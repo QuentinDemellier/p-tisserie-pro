@@ -61,7 +61,7 @@ export default function NewOrder() {
         customer_phone: data.customer_phone,
         customer_email: data.customer_email,
         total_amount: total,
-        status: "enregistree"
+        status: "Enregistrée"
       });
 
       const orderLines = await Promise.all(

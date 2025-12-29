@@ -161,7 +161,7 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
       await base44.entities.Order.update(order.id, {
         ...orderData,
         total_amount: newTotal,
-        status: "enregistree_modifiee"
+        status: "Enregistrée (modifiée)"
       });
 
       // Supprimer les anciennes lignes
@@ -196,7 +196,7 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
       await base44.entities.OrderStatusHistory.create({
         order_id: order.id,
         old_status: order.status,
-        new_status: "enregistree_modifiee",
+        new_status: "Enregistrée (modifiée)",
         changed_by: user?.email || "inconnu",
         comment: comment || "Commande modifiée"
       });

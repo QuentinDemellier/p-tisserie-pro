@@ -159,16 +159,12 @@ export default function OrdersList() {
   const getStatusColor = (status) => {
     const colors = {
       "Enregistrée": "bg-blue-100 text-blue-800 border-blue-200",
-      "Modifiée": "bg-orange-100 text-orange-800 border-orange-200",
+      "Enregistrée (modifiée)": "bg-orange-100 text-orange-800 border-orange-200",
       "En livraison": "bg-purple-100 text-purple-800 border-purple-200",
       "Récupérée": "bg-green-100 text-green-800 border-green-200",
       "Annulée": "bg-red-100 text-red-800 border-red-200"
     };
     return colors[status] || colors["Enregistrée"];
-  };
-
-  const getStatusLabel = (status) => {
-    return status;
   };
 
   const exportToCSV = () => {
@@ -387,7 +383,7 @@ export default function OrdersList() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Enregistrée">Enregistrée</SelectItem>
-                            <SelectItem value="Modifiée">Modifiée</SelectItem>
+                            <SelectItem value="Enregistrée (modifiée)">Enregistrée (modifiée)</SelectItem>
                             <SelectItem value="En livraison">En livraison</SelectItem>
                             <SelectItem value="Récupérée">Récupérée</SelectItem>
                             <SelectItem value="Annulée">Annulée</SelectItem>
