@@ -118,6 +118,10 @@ export default function VendeurHome() {
     return colors[status] || colors["Enregistrée"];
   };
 
+  const getStatusLabel = (status) => {
+    return status || "Enregistrée";
+  };
+
   return (
     <div className="p-6 md:p-8">
       <div className="max-w-7xl mx-auto">

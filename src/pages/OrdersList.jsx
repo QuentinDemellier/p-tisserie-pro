@@ -167,6 +167,10 @@ export default function OrdersList() {
     return colors[status] || colors["Enregistrée"];
   };
 
+  const getStatusLabel = (status) => {
+    return status || "Enregistrée";
+  };
+
   const exportToCSV = () => {
     const headers = ["Numéro", "Client", "Boutique", "Date retrait", "Montant", "Statut"];
     const rows = filteredOrders.map(order => {
