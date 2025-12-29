@@ -56,7 +56,7 @@ export default function ProductCard({ product, onAdd }) {
             </p>
           )}
           <div className="flex items-center justify-between mt-4">
-            <span className="text-2xl font-bold text-[#C98F75]">
+            <span className="text-xl font-bold text-[#C98F75]">
               {product.price.toFixed(2)} €
             </span>
             <Button
