@@ -34,22 +34,12 @@ export default function Layout({ children, currentPageName }) {
   const [selectedRole, setSelectedRole] = useState(null);
 
   useEffect(() => {
-    // Ne pas vérifier l'auth sur la page Home
-    if (currentPageName === "Home") {
-      setLoading(false);
-      return;
-    }
-    
-    // En dev local, on skip la vérification Base44
-    setLoading(false);
-    setUser({ email: "dev@local.com", full_name: "Dev Local", user_role: "admin" });
-    
-    /* Décommenter pour activer Base44 en production
+  
     base44.auth.me()
       .then(setUser)
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
-    */
+   
   }, [currentPageName]);
 
   const cycleRole = () => {

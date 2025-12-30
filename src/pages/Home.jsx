@@ -23,16 +23,11 @@ export default function Home() {
   const [loginError, setLoginError] = useState("");
 
   useEffect(() => {
-    // En développement local, on skip la vérification Base44 pour éviter les erreurs 431
-    setLoading(false);
-    setUser({ email: "dev@local.com", full_name: "Dev Local" });
-    
-    /* Décommenter pour activer Base44 en production
     base44.auth.me()
       .then(setUser)
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
-    */
+    
   }, []);
 
   const handleAccess = (space) => {
@@ -55,10 +50,10 @@ export default function Home() {
     setIsLoggingIn(true);
 
     try {
-      // En dev local, on skip la vérification Base44
-      let currentUser = user || { email: "dev@local.com", full_name: "Dev Local" };
+    
+      let currentUser = user
       
-      /* Décommenter pour activer Base44 en production
+     
       if (!currentUser) {
         try {
           currentUser = await base44.auth.me();
@@ -67,7 +62,7 @@ export default function Home() {
           return;
         }
       }
-      */
+     
 
       // Determine the role based on selected space
       const roleMap = {
