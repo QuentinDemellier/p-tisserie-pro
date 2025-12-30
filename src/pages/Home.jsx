@@ -20,6 +20,7 @@ export default function Home() {
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
   useEffect(() => {
     base44.auth.me()
@@ -33,10 +34,14 @@ export default function Home() {
     setLoginDialogOpen(true);
     setLoginId("");
     setPassword("");
+    setLoginError("");
   };
 
   const handleLogin = async () => {
+    setLoginError("");
+    
     if (loginId !== "123" || password !== "123") {
+      setLoginError("Identifiant ou mot de passe incorrect");
       toast.error("Identifiant ou mot de passe incorrect");
       return;
     }
@@ -247,6 +252,14 @@ export default function Home() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {loginError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-red-600 text-lg">⚠</span>
+                </div>
+                <p className="text-sm text-red-700 font-medium">{loginError}</p>
+              </div>
+            )}
             <div>
               <Label htmlFor="login_id">Identifiant</Label>
               <Input
