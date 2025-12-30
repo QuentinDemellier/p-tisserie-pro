@@ -34,11 +34,17 @@ export default function Layout({ children, currentPageName }) {
   const [selectedRole, setSelectedRole] = useState(null);
 
   useEffect(() => {
+    // Ne pas vérifier l'auth sur la page Home
+    if (currentPageName === "Home") {
+      setLoading(false);
+      return;
+    }
+    
     base44.auth.me()
       .then(setUser)
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
-  }, []);
+  }, [currentPageName]);
 
   const cycleRole = () => {
     const roles = ['vendeur', 'production', 'admin'];
