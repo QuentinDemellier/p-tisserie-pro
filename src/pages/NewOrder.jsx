@@ -28,31 +28,31 @@ export default function NewOrder() {
     customer_name: "",
     customer_firstname: "",
     customer_phone: "",
-    customer_email: ""
+    customer_email: "",
   });
 
   const { data: products = [], isLoading: loadingProducts } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => base44.entities.Product.filter({ active: true })
+    queryKey: ["products"],
+    queryFn: () => base44.entities.Product.filter({ active: true }),
   });
 
   const { data: allCategories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => base44.entities.Category.list('order')
+    queryKey: ["categories"],
+    queryFn: () => base44.entities.Category.list("order"),
   });
 
-  const categories = allCategories.filter(cat => cat.active !== false);
+  const categories = allCategories.filter((cat) => cat.active !== false);
 
   const { data: shops = [] } = useQuery({
-    queryKey: ['shops'],
-    queryFn: () => base44.entities.Shop.filter({ active: true })
+    queryKey: ["shops"],
+    queryFn: () => base44.entities.Shop.filter({ active: true }),
   });
 
   const createOrderMutation = useMutation({
     mutationFn: async (data) => {
       const orderNumber = `CMD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      
+
       const order = await base44.entities.Order.create({
         order_number: orderNumber,
         shop_id: data.shop_id,
@@ -62,11 +62,11 @@ export default function NewOrder() {
         customer_phone: data.customer_phone,
         customer_email: data.customer_email,
         total_amount: total,
-        status: "Enregistrée"
+        status: "Enregistrée",
       });
 
       const orderLines = await Promise.all(
-        cart.map(item =>
+        cart.map((item) =>
           base44.entities.OrderLine.create({
             order_id: order.id,
             product_id: item.id,
@@ -74,13 +74,13 @@ export default function NewOrder() {
             quantity: item.quantity,
             unit_price: item.price,
             customization: item.customization || "",
-            subtotal: item.price * item.quantity
+            subtotal: item.price * item.quantity,
           })
         )
       );
 
-      const shop = shops.find(s => s.id === data.shop_id);
-      
+      const shop = shops.find((s) => s.id === data.shop_id);
+
       await base44.integrations.Core.SendEmail({
         to: data.customer_email,
         subject: `Confirmation de commande ${orderNumber}`,
@@ -90,31 +90,38 @@ Bonjour ${data.customer_firstname} ${data.customer_name},
 Votre commande a bien été enregistrée !
 
 Numéro de commande : ${orderNumber}
-Boutique de retrait : ${shop?.name || ''}
-Date de retrait : ${new Date(data.pickup_date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}
+Boutique de retrait : ${shop?.name || ""}
+Date de retrait : ${new Date(data.pickup_date).toLocaleDateString("fr-FR", { dateStyle: "long" })}
 Montant total : ${total.toFixed(2)} €
 
 Détail de votre commande :
-${cart.map(item => `- ${item.quantity}x ${item.name} (${(item.price * item.quantity).toFixed(2)} €)${item.customization ? `\n  Personnalisation : ${item.customization}` : ''}`).join('\n')}
+${cart
+  .map(
+    (item) =>
+      `- ${item.quantity}x ${item.name} (${(item.price * item.quantity).toFixed(2)} €)${
+        item.customization ? `\n  Personnalisation : ${item.customization}` : ""
+      }`
+  )
+  .join("\n")}
 
 Merci de votre confiance !
 
 L'équipe de la Pâtisserie
-        `
+        `,
       });
 
       return { order, orderNumber };
-      },
-      onSuccess: ({ orderNumber }) => {
+    },
+    onSuccess: ({ orderNumber }) => {
       confetti({
         particleCount: 150,
         spread: 100,
-        origin: { y: 0.6 }
+        origin: { y: 0.6 },
       });
       toast.success("Commande enregistrée !", {
         description: `Numéro de commande : ${orderNumber}`,
         duration: 5000,
-        icon: "✓"
+        icon: "✓",
       });
       setCart([]);
       setStep(1);
@@ -124,21 +131,21 @@ L'équipe de la Pâtisserie
         customer_name: "",
         customer_firstname: "",
         customer_phone: "",
-        customer_email: ""
+        customer_email: "",
       });
-      },
+    },
     onError: (error) => {
       toast.error("Erreur lors de la création de la commande");
       console.error(error);
-    }
+    },
   });
 
   const addToCart = (product) => {
-    const existingItem = cart.find(item => item.id === product.id);
+    const existingItem = cart.find((item) => item.id === product.id);
     const currentStock = product.current_stock || 0;
     const hasUnlimitedStock = product.unlimited_stock !== false;
     const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
-    
+
     // Si le stock est illimité, pas de vérification
     if (!hasUnlimitedStock) {
       // Vérifier si on peut ajouter une unité de plus
@@ -147,7 +154,7 @@ L'équipe de la Pâtisserie
         return;
       }
     }
-    
+
     if (existingItem) {
       updateQuantity(product.id, existingItem.quantity + 1);
     } else {
@@ -157,46 +164,48 @@ L'équipe de la Pâtisserie
   };
 
   const updateQuantity = (productId, quantity) => {
-    const item = cart.find(i => i.id === productId);
+    const item = cart.find((i) => i.id === productId);
     if (!item) return;
-    
+
     const currentStock = item.current_stock || 0;
     const hasUnlimitedStock = item.unlimited_stock !== false;
-    
+
     // Vérifier le stock avant de mettre à jour (sauf si illimité)
     if (!hasUnlimitedStock && quantity > currentStock) {
       setStockErrorDialogOpen(true);
       return;
     }
-    
-    setCart(cart.map(item => 
-      item.id === productId ? { ...item, quantity: Math.max(1, quantity) } : item
-    ));
+
+    setCart(cart.map((item) => (item.id === productId ? { ...item, quantity: Math.max(1, quantity) } : item)));
   };
 
   const updateCustomization = (productId, customization) => {
-    setCart(cart.map(item => 
-      item.id === productId ? { ...item, customization } : item
-    ));
+    setCart(cart.map((item) => (item.id === productId ? { ...item, customization } : item)));
   };
 
   const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item.id !== productId));
+    setCart(cart.filter((item) => item.id !== productId));
     toast.info("Produit retiré du panier");
   };
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || product.category_id === selectedCategory;
-    const categoryIsActive = allCategories.find(cat => cat.id === product.category_id)?.active !== false;
+    const categoryIsActive = allCategories.find((cat) => cat.id === product.category_id)?.active !== false;
     return matchesSearch && matchesCategory && categoryIsActive;
   });
 
   const handleSubmit = () => {
-    if (!orderData.shop_id || !orderData.pickup_date || !orderData.customer_name || 
-        !orderData.customer_firstname || !orderData.customer_phone || !orderData.customer_email) {
+    if (
+      !orderData.shop_id ||
+      !orderData.pickup_date ||
+      !orderData.customer_name ||
+      !orderData.customer_firstname ||
+      !orderData.customer_phone ||
+      !orderData.customer_email
+    ) {
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
@@ -211,11 +220,7 @@ L'équipe de la Pâtisserie
   if (step === 2) {
     return (
       <div className="p-6 md:p-8 max-w-4xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => setStep(1)}
-          className="mb-6 hover:bg-[#E0A890]/10"
-        >
+        <Button variant="ghost" onClick={() => setStep(1)} className="mb-6 hover:bg-[#E0A890]/10">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Retour au catalogue
         </Button>
@@ -231,39 +236,33 @@ L'équipe de la Pâtisserie
             <div>
               <h3 className="font-bold text-lg mb-4 text-gray-800">Récapitulatif du panier</h3>
               <div className="space-y-3 mb-4">
-                {cart.map(item => (
+                {cart.map((item) => (
                   <div key={item.id} className="flex justify-between items-start p-4 bg-[#F8EDE3]/30 rounded-lg">
                     <div>
-                      <p className="font-semibold">{item.quantity}x {item.name}</p>
-                      {item.customization && (
-                        <p className="text-sm text-gray-600 mt-1">
-                          Personnalisation : {item.customization}
-                        </p>
-                      )}
+                      <p className="font-semibold">
+                        {item.quantity}x {item.name}
+                      </p>
+                      {item.customization && <p className="text-sm text-gray-600 mt-1">Personnalisation : {item.customization}</p>}
                     </div>
-                    <p className="font-bold text-[#C98F75]">
-                      {(item.price * item.quantity).toFixed(2)} €
-                    </p>
+                    <p className="font-bold text-[#C98F75]">{(item.price * item.quantity).toFixed(2)} €</p>
                   </div>
                 ))}
               </div>
               <div className="flex justify-between items-center pt-4 border-t-2 border-[#E0A890]">
                 <span className="text-xl font-bold">Total</span>
-                <span className="text-2xl font-bold text-[#C98F75]">
-                  {totalAmount.toFixed(2)} €
-                </span>
+                <span className="text-2xl font-bold text-[#C98F75]">{totalAmount.toFixed(2)} €</span>
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="shop">Boutique de retrait *</Label>
-                <Select value={orderData.shop_id} onValueChange={(value) => setOrderData({...orderData, shop_id: value})}>
+                <Select value={orderData.shop_id} onValueChange={(value) => setOrderData({ ...orderData, shop_id: value })}>
                   <SelectTrigger className="mt-2 border-[#DFD3C3]">
                     <SelectValue placeholder="Sélectionnez une boutique" />
                   </SelectTrigger>
                   <SelectContent>
-                    {shops.map(shop => (
+                    {shops.map((shop) => (
                       <SelectItem key={shop.id} value={shop.id}>
                         {shop.name} - {shop.location}
                       </SelectItem>
@@ -280,9 +279,9 @@ L'équipe de la Pâtisserie
                     id="pickup_date"
                     type="date"
                     value={orderData.pickup_date}
-                    onChange={(e) => setOrderData({...orderData, pickup_date: e.target.value})}
+                    onChange={(e) => setOrderData({ ...orderData, pickup_date: e.target.value })}
                     className="pl-10 border-[#DFD3C3]"
-                    min={new Date().toISOString().split('T')[0]}
+                    min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
               </div>
@@ -294,7 +293,7 @@ L'équipe de la Pâtisserie
                   <Input
                     id="customer_firstname"
                     value={orderData.customer_firstname}
-                    onChange={(e) => setOrderData({...orderData, customer_firstname: e.target.value})}
+                    onChange={(e) => setOrderData({ ...orderData, customer_firstname: e.target.value })}
                     className="pl-10 border-[#DFD3C3]"
                     placeholder="Prénom du client"
                   />
@@ -308,7 +307,7 @@ L'équipe de la Pâtisserie
                   <Input
                     id="customer_name"
                     value={orderData.customer_name}
-                    onChange={(e) => setOrderData({...orderData, customer_name: e.target.value})}
+                    onChange={(e) => setOrderData({ ...orderData, customer_name: e.target.value })}
                     className="pl-10 border-[#DFD3C3]"
                     placeholder="Nom du client"
                   />
@@ -323,7 +322,7 @@ L'équipe de la Pâtisserie
                     id="customer_phone"
                     type="tel"
                     value={orderData.customer_phone}
-                    onChange={(e) => setOrderData({...orderData, customer_phone: e.target.value})}
+                    onChange={(e) => setOrderData({ ...orderData, customer_phone: e.target.value })}
                     className="pl-10 border-[#DFD3C3]"
                     placeholder="06 12 34 56 78"
                   />
@@ -338,7 +337,7 @@ L'équipe de la Pâtisserie
                     id="customer_email"
                     type="email"
                     value={orderData.customer_email}
-                    onChange={(e) => setOrderData({...orderData, customer_email: e.target.value})}
+                    onChange={(e) => setOrderData({ ...orderData, customer_email: e.target.value })}
                     className="pl-10 border-[#DFD3C3]"
                     placeholder="client@exemple.fr"
                   />
@@ -366,9 +365,7 @@ L'équipe de la Pâtisserie
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">⚠️</span>
               </div>
-              <p className="text-gray-700 text-lg">
-                La quantité demandée dépasse le stock disponible pour ce produit.
-              </p>
+              <p className="text-gray-700 text-lg">La quantité demandée dépasse le stock disponible pour ce produit.</p>
             </div>
             <div className="flex justify-center">
               <Button
@@ -390,33 +387,27 @@ L'équipe de la Pâtisserie
                 Confirmation de la commande
               </DialogTitle>
             </DialogHeader>
-            
+
             <div className="space-y-6 py-4">
               {/* Produits sélectionnés */}
               <div>
                 <h3 className="font-bold text-lg mb-3 text-gray-800">Produits commandés</h3>
                 <div className="space-y-2">
-                  {cart.map(item => (
+                  {cart.map((item) => (
                     <div key={item.id} className="flex justify-between items-start p-3 bg-[#F8EDE3]/30 rounded-lg">
                       <div className="flex-1">
-                        <p className="font-semibold">{item.quantity}x {item.name}</p>
-                        {item.customization && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            Personnalisation : {item.customization}
-                          </p>
-                        )}
+                        <p className="font-semibold">
+                          {item.quantity}x {item.name}
+                        </p>
+                        {item.customization && <p className="text-sm text-gray-600 mt-1">Personnalisation : {item.customization}</p>}
                       </div>
-                      <p className="font-bold text-[#C98F75] ml-4">
-                        {(item.price * item.quantity).toFixed(2)} €
-                      </p>
+                      <p className="font-bold text-[#C98F75] ml-4">{(item.price * item.quantity).toFixed(2)} €</p>
                     </div>
                   ))}
                 </div>
                 <div className="flex justify-between items-center pt-3 mt-3 border-t-2 border-[#E0A890]">
                   <span className="text-xl font-bold">Total</span>
-                  <span className="text-2xl font-bold text-[#C98F75]">
-                    {totalAmount.toFixed(2)} €
-                  </span>
+                  <span className="text-2xl font-bold text-[#C98F75]">{totalAmount.toFixed(2)} €</span>
                 </div>
               </div>
 
@@ -424,9 +415,15 @@ L'équipe de la Pâtisserie
               <div>
                 <h3 className="font-bold text-lg mb-3 text-gray-800">Informations client</h3>
                 <div className="bg-[#F8EDE3]/30 rounded-lg p-4 space-y-2">
-                  <p><span className="font-medium">Nom :</span> {orderData.customer_firstname} {orderData.customer_name}</p>
-                  <p><span className="font-medium">Téléphone :</span> {orderData.customer_phone}</p>
-                  <p><span className="font-medium">Email :</span> {orderData.customer_email}</p>
+                  <p>
+                    <span className="font-medium">Nom :</span> {orderData.customer_firstname} {orderData.customer_name}
+                  </p>
+                  <p>
+                    <span className="font-medium">Téléphone :</span> {orderData.customer_phone}
+                  </p>
+                  <p>
+                    <span className="font-medium">Email :</span> {orderData.customer_email}
+                  </p>
                 </div>
               </div>
 
@@ -434,9 +431,16 @@ L'équipe de la Pâtisserie
               <div>
                 <h3 className="font-bold text-lg mb-3 text-gray-800">Informations de retrait</h3>
                 <div className="bg-[#F8EDE3]/30 rounded-lg p-4 space-y-2">
-                  <p><span className="font-medium">Boutique :</span> {shops.find(s => s.id === orderData.shop_id)?.name}</p>
-                  <p><span className="font-medium">Adresse :</span> {shops.find(s => s.id === orderData.shop_id)?.location}</p>
-                  <p><span className="font-medium">Date de retrait :</span> {new Date(orderData.pickup_date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</p>
+                  <p>
+                    <span className="font-medium">Boutique :</span> {shops.find((s) => s.id === orderData.shop_id)?.name}
+                  </p>
+                  <p>
+                    <span className="font-medium">Adresse :</span> {shops.find((s) => s.id === orderData.shop_id)?.location}
+                  </p>
+                  <p>
+                    <span className="font-medium">Date de retrait :</span>{" "}
+                    {new Date(orderData.pickup_date).toLocaleDateString("fr-FR", { dateStyle: "long" })}
+                  </p>
                 </div>
               </div>
 
@@ -478,7 +482,7 @@ L'équipe de la Pâtisserie
               {/* Bouton panier mobile */}
               <Button
                 onClick={() => setCartDrawerOpen(true)}
-                className="lg:hidden fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-2xl bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] z-50"
+                className="xl:hidden fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-2xl bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] z-50"
                 size="icon"
               >
                 <div className="relative">
@@ -509,9 +513,9 @@ L'équipe de la Pâtisserie
                     <TabsTrigger value="all" className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm">
                       Tous
                     </TabsTrigger>
-                    {categories.map(cat => (
-                      <TabsTrigger 
-                        key={cat.id} 
+                    {categories.map((cat) => (
+                      <TabsTrigger
+                        key={cat.id}
                         value={cat.id}
                         className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm whitespace-nowrap"
                       >
@@ -525,7 +529,7 @@ L'équipe de la Pâtisserie
 
             {loadingProducts ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1,2,3,4,5,6].map(i => (
+                {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div key={i} className="animate-pulse">
                     <div className="aspect-square bg-[#DFD3C3]/30 rounded-lg mb-4" />
                     <div className="h-4 bg-[#DFD3C3]/30 rounded mb-2" />
@@ -540,8 +544,8 @@ L'équipe de la Pâtisserie
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                {filteredProducts.map(product => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
+                {filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} onAdd={addToCart} />
                 ))}
               </div>
@@ -549,8 +553,8 @@ L'équipe de la Pâtisserie
           </div>
 
           {/* Panier desktop */}
-          <div className="hidden lg:block lg:w-96 lg:sticky lg:top-6">
-            <Card className="border-[#DFD3C3]/30 shadow-2xl bg-white/90 backdrop-blur-sm">
+          <div className="hidden xl:block xl:w-96 xl:top-6">
+            <Card className="border-[#DFD3C3]/30 shadow-2xl bg-white/90 backdrop-blur-sm fixed min-w-96">
               <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
                 <CardTitle className="flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-[#C98F75]" />
@@ -566,7 +570,7 @@ L'équipe de la Pâtisserie
                 ) : (
                   <>
                     <div className="space-y-3 mb-6 max-h-[50vh] overflow-y-auto pr-2">
-                      {cart.map(item => (
+                      {cart.map((item) => (
                         <CartItem
                           key={item.id}
                           item={item}
@@ -580,9 +584,7 @@ L'équipe de la Pâtisserie
                     <div className="border-t-2 border-[#E0A890] pt-4 mb-4">
                       <div className="flex justify-between items-center">
                         <span className="text-xl font-bold">Total</span>
-                        <span className="text-2xl font-bold text-[#C98F75]">
-                          {totalAmount.toFixed(2)} €
-                        </span>
+                        <span className="text-2xl font-bold text-[#C98F75]">{totalAmount.toFixed(2)} €</span>
                       </div>
                     </div>
 
@@ -617,7 +619,7 @@ L'équipe de la Pâtisserie
               ) : (
                 <>
                   <div className="space-y-3 mb-6">
-                    {cart.map(item => (
+                    {cart.map((item) => (
                       <CartItem
                         key={item.id}
                         item={item}
@@ -631,9 +633,7 @@ L'équipe de la Pâtisserie
                   <div className="border-t-2 border-[#E0A890] pt-4 mb-4">
                     <div className="flex justify-between items-center">
                       <span className="text-xl font-bold">Total</span>
-                      <span className="text-2xl font-bold text-[#C98F75]">
-                        {totalAmount.toFixed(2)} €
-                      </span>
+                      <span className="text-2xl font-bold text-[#C98F75]">{totalAmount.toFixed(2)} €</span>
                     </div>
                   </div>
 
@@ -662,9 +662,7 @@ L'équipe de la Pâtisserie
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">⚠️</span>
               </div>
-              <p className="text-gray-700 text-lg">
-                La quantité demandée dépasse le stock disponible pour ce produit.
-              </p>
+              <p className="text-gray-700 text-lg">La quantité demandée dépasse le stock disponible pour ce produit.</p>
             </div>
             <div className="flex justify-center">
               <Button
