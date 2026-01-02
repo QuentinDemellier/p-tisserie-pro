@@ -135,9 +135,11 @@ L'équipe de la Pâtisserie
         customer_firstname: "",
         customer_phone: "",
         customer_email: "",
-      });
-    },
-    onError: (error) => {
+        ticket_number: "",
+        });
+        setIsChristmasMode(false);
+        },
+        onError: (error) => {
       toast.error("Erreur lors de la création de la commande");
       console.error(error);
     },
