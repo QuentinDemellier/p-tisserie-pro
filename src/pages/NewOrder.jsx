@@ -350,9 +350,22 @@ L'équipe de la Pâtisserie
                   />
                 </div>
               </div>
-            </div>
 
-            <Button
+              {isChristmasMode && (
+                <div className="md:col-span-2">
+                  <Label htmlFor="ticket_number">Numéro de ticket</Label>
+                  <Input
+                    id="ticket_number"
+                    value={orderData.ticket_number}
+                    onChange={(e) => setOrderData({ ...orderData, ticket_number: e.target.value })}
+                    className="mt-2 border-[#DFD3C3]"
+                    placeholder="Ex: NOEL2026-123"
+                  />
+                </div>
+              )}
+              </div>
+
+              <Button
               onClick={handleSubmit}
               disabled={createOrderMutation.isPending}
               className="w-full bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white text-lg py-6 shadow-lg hover:shadow-xl transition-all duration-300"
