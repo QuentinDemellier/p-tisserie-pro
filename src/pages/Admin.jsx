@@ -763,13 +763,13 @@ export default function Admin() {
                             </TableCell>
                             </TableRow>
                             );})}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                            </TableBody>
+                            </Table>
+                            </div>
+                            )}
+                            </CardContent>
+                            </Card>
+                            </TabsContent>
 
           {/* SHOPS TAB */}
           <TabsContent value="shops">
