@@ -477,7 +477,8 @@ L'équipe de la Pâtisserie
   }
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 relative">
+      {isChristmasMode && <SnowEffect />}
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
