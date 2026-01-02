@@ -256,9 +256,10 @@ export default function ProductionHome() {
         </div>
 
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="products">Production du jour</TabsTrigger>
             <TabsTrigger value="shops">Par boutique</TabsTrigger>
+            <TabsTrigger value="delivery">Livraison du jour</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products">
@@ -326,6 +327,130 @@ export default function ProductionHome() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="delivery">
+            <div className="space-y-6">
+              {deliveryList.length === 0 ? (
+                <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90">
+                  <CardContent className="p-12 text-center">
+                    <Truck className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                    <p className="text-gray-500 text-lg">Aucune livraison prévue aujourd'hui</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {deliveryList.map((delivery) => {
+                    const progress = getProgress(delivery.shop.id, delivery.products);
+                    const isComplete = progress.checked === progress.total;
+                    
+                    return (
+                      <Card 
+                        key={delivery.shop.id} 
+                        className={`border-2 transition-all duration-300 ${
+                          isComplete 
+                            ? 'border-green-400 bg-gradient-to-br from-green-50 to-white shadow-2xl' 
+                            : 'border-[#DFD3C3]/30 bg-white/90 shadow-xl'
+                        }`}
+                      >
+                        <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <CardTitle className="flex items-center gap-2 text-xl mb-1">
+                                <Truck className={`w-5 h-5 ${isComplete ? 'text-green-600' : 'text-[#C98F75]'}`} />
+                                {delivery.shop.name}
+                              </CardTitle>
+                              <p className="text-sm text-gray-600">{delivery.shop.location}</p>
+                            </div>
+                            {isComplete && (
+                              <div className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span className="text-sm font-semibold">Complet</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Barre de progression */}
+                          <div className="mt-4">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-xs font-medium text-gray-600">
+                                {progress.checked} / {progress.total} articles préparés
+                              </span>
+                              <span className="text-xs font-bold text-[#C98F75]">
+                                {Math.round(progress.percentage)}%
+                              </span>
+                            </div>
+                            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full transition-all duration-500 ${
+                                  isComplete ? 'bg-green-500' : 'bg-gradient-to-r from-[#E0A890] to-[#C98F75]'
+                                }`}
+                                style={{ width: `${progress.percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        </CardHeader>
+                        
+                        <CardContent className="p-4">
+                          <div className="space-y-2">
+                            {delivery.products.map((product) => {
+                              const key = `${delivery.shop.id}-${product.name}`;
+                              const isChecked = checkedItems[key] || false;
+                              
+                              return (
+                                <div 
+                                  key={key}
+                                  onClick={() => handleToggle(delivery.shop.id, product.name)}
+                                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                                    isChecked 
+                                      ? 'bg-green-50 border-2 border-green-300' 
+                                      : 'bg-gray-50 hover:bg-[#F8EDE3]/50 border-2 border-transparent'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3 flex-1">
+                                    <Checkbox 
+                                      checked={isChecked}
+                                      onCheckedChange={() => handleToggle(delivery.shop.id, product.name)}
+                                      className={isChecked ? 'border-green-500 bg-green-500' : ''}
+                                    />
+                                    <span className={`font-medium ${
+                                      isChecked ? 'text-green-700 line-through' : 'text-gray-800'
+                                    }`}>
+                                      {product.name}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`text-base font-bold px-3 py-1 ${
+                                        isChecked 
+                                          ? 'bg-green-100 text-green-700 border-green-300' 
+                                          : 'bg-[#E0A890]/20 text-[#C98F75] border-[#E0A890]'
+                                      }`}
+                                    >
+                                      {product.quantity}
+                                    </Badge>
+                                    {isChecked && (
+                                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          
+                          <div className="mt-4 pt-4 border-t border-[#DFD3C3]/30">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-700">Total articles</span>
+                              <span className="text-xl font-bold text-[#C98F75]">{delivery.totalItems}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </TabsContent>
 
         </Tabs>
 
