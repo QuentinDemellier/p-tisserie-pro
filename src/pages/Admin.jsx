@@ -29,6 +29,9 @@ export default function Admin() {
   const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
   const [bulkAction, setBulkAction] = useState("");
   const [bulkCategoryId, setBulkCategoryId] = useState("");
+  const [productFilterCategory, setProductFilterCategory] = useState("all");
+  const [productFilterStatus, setProductFilterStatus] = useState("all");
+  const [productFilterChristmas, setProductFilterChristmas] = useState("all");
   const [productFormData, setProductFormData] = useState({
     name: "",
     price: "",
@@ -418,7 +421,42 @@ export default function Admin() {
 
           {/* PRODUCTS TAB */}
           <TabsContent value="products">
-            <div className="flex justify-end mb-4">
+            <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
+              <div className="flex flex-wrap gap-2">
+                <Select value={productFilterCategory} onValueChange={setProductFilterCategory}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Catégorie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toutes les catégories</SelectItem>
+                    {categories.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.is_christmas === true ? '🎄 ' : ''}{cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={productFilterStatus} onValueChange={setProductFilterStatus}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="active">Actif</SelectItem>
+                    <SelectItem value="inactive">Inactif</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={productFilterChristmas} onValueChange={setProductFilterChristmas}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les types</SelectItem>
+                    <SelectItem value="christmas">🎄 Noël</SelectItem>
+                    <SelectItem value="regular">Classique</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button onClick={() => handleOpenProductDialog()} className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">
                 <Plus className="w-4 h-4 mr-2" />
                 Nouveau produit
@@ -482,7 +520,16 @@ export default function Admin() {
             )}
             <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90">
               <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
-                <CardTitle>Liste des produits ({products.length})</CardTitle>
+                <CardTitle>Liste des produits ({products.filter(product => {
+                  if (productFilterCategory !== "all" && product.category_id !== productFilterCategory) return false;
+                  if (productFilterStatus === "active" && product.active === false) return false;
+                  if (productFilterStatus === "inactive" && product.active !== false) return false;
+                  const category = categories.find(c => c.id === product.category_id);
+                  const isChristmas = product.is_christmas === true || category?.is_christmas === true;
+                  if (productFilterChristmas === "christmas" && !isChristmas) return false;
+                  if (productFilterChristmas === "regular" && isChristmas) return false;
+                  return true;
+                }).length})</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -510,10 +557,33 @@ export default function Admin() {
                           <TableRow key={i}><TableCell colSpan={7}><div className="h-12 bg-[#DFD3C3]/20 animate-pulse rounded" /></TableCell></TableRow>
                         ))
                       ) : products.length === 0 ? (
-                        <TableRow><TableCell colSpan={7} className="text-center py-12 text-gray-500">Aucun produit</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={8} className="text-center py-12 text-gray-500">Aucun produit</TableCell></TableRow>
                       ) : (
-                        products.map(product => {
+                        products.filter(product => {
+                          // Filter by category
+                          if (productFilterCategory !== "all" && product.category_id !== productFilterCategory) {
+                            return false;
+                          }
+                          // Filter by status
+                          if (productFilterStatus === "active" && product.active === false) {
+                            return false;
+                          }
+                          if (productFilterStatus === "inactive" && product.active !== false) {
+                            return false;
+                          }
+                          // Filter by Christmas tag
                           const category = categories.find(c => c.id === product.category_id);
+                          const isChristmas = product.is_christmas === true || category?.is_christmas === true;
+                          if (productFilterChristmas === "christmas" && !isChristmas) {
+                            return false;
+                          }
+                          if (productFilterChristmas === "regular" && isChristmas) {
+                            return false;
+                          }
+                          return true;
+                        }).map(product => {
+                          const category = categories.find(c => c.id === product.category_id);
+                          const isChristmas = product.is_christmas === true || category?.is_christmas === true;
                           return (
                             <TableRow key={product.id} className="hover:bg-[#F8EDE3]/20">
                               <TableCell>
@@ -527,7 +597,7 @@ export default function Admin() {
                                   {product.image_url ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" /> : <span className="text-2xl">🧁</span>}
                                 </div>
                               </TableCell>
-                              <TableCell className="font-semibold">{product.name}</TableCell>
+                              <TableCell className="font-semibold">{isChristmas ? '🎄 ' : ''}{product.name}</TableCell>
                               <TableCell><Badge variant="outline" className="border-[#E0A890] text-[#C98F75]">{category?.name || '-'}</Badge></TableCell>
                               <TableCell className="font-bold text-[#C98F75]">{product.price?.toFixed(2)} €</TableCell>
                               <TableCell>
