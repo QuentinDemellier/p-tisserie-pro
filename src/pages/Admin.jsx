@@ -46,7 +46,8 @@ export default function Admin() {
     name: "",
     description: "",
     order: 0,
-    active: true
+    active: true,
+    is_christmas: false
   });
 
   // Shop states
@@ -218,11 +219,16 @@ export default function Admin() {
       return;
     }
     
+    // Check if the selected category is a Christmas category
+    const selectedCategory = categories.find(c => c.id === productFormData.category_id);
+    const isChristmasCategory = selectedCategory?.is_christmas === true;
+    
     const data = { 
       ...productFormData, 
       price: parseFloat(productFormData.price),
       unlimited_stock: productFormData.unlimited_stock,
-      current_stock: parseInt(productFormData.current_stock) || 0
+      current_stock: parseInt(productFormData.current_stock) || 0,
+      is_christmas: isChristmasCategory
     };
     
     if (editingProduct) {
@@ -275,22 +281,42 @@ export default function Admin() {
   const handleOpenCategoryDialog = (category = null) => {
     if (category) {
       setEditingCategory(category);
-      setCategoryFormData({ name: category.name || "", description: category.description || "", order: category.order || 0, active: category.active !== false });
+      setCategoryFormData({ 
+        name: category.name || "", 
+        description: category.description || "", 
+        order: category.order || 0, 
+        active: category.active !== false,
+        is_christmas: category.is_christmas === true
+      });
     } else {
       setEditingCategory(null);
-      setCategoryFormData({ name: "", description: "", order: categories.length, active: true });
+      setCategoryFormData({ name: "", description: "", order: categories.length, active: true, is_christmas: false });
     }
     setCategoryDialogOpen(true);
   };
 
-  const handleCategorySubmit = () => {
+  const handleCategorySubmit = async () => {
     if (!categoryFormData.name) {
       toast.error("Le nom est obligatoire");
       return;
     }
     const data = { ...categoryFormData, order: parseInt(categoryFormData.order) || 0 };
+    
     if (editingCategory) {
-      updateCategoryMutation.mutate({ id: editingCategory.id, data });
+      // Update category
+      await updateCategoryMutation.mutateAsync({ id: editingCategory.id, data });
+      
+      // If is_christmas changed, update all products in this category
+      if (data.is_christmas !== editingCategory.is_christmas) {
+        const categoryProducts = products.filter(p => p.category_id === editingCategory.id);
+        await Promise.all(
+          categoryProducts.map(product => 
+            base44.entities.Product.update(product.id, { is_christmas: data.is_christmas })
+          )
+        );
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        toast.success(`${categoryProducts.length} produit(s) mis à jour`);
+      }
     } else {
       createCategoryMutation.mutate(data);
     }
@@ -554,6 +580,7 @@ export default function Admin() {
                           <TableHead>Ordre</TableHead>
                           <TableHead>Nom</TableHead>
                           <TableHead>Description</TableHead>
+                          <TableHead>Type</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -564,6 +591,11 @@ export default function Admin() {
                             <TableCell><div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E0A890] to-[#C98F75] flex items-center justify-center text-white font-bold">{category.order}</div></TableCell>
                             <TableCell className="font-semibold text-lg">{category.name}</TableCell>
                             <TableCell className="text-gray-600">{category.description || '-'}</TableCell>
+                            <TableCell>
+                              {category.is_christmas === true && (
+                                <Badge className="bg-red-100 text-red-800 border-red-300">🎄 Noël</Badge>
+                              )}
+                            </TableCell>
                             <TableCell><Badge className={category.active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>{category.active !== false ? "Active" : "Inactive"}</Badge></TableCell>
                             <TableCell className="text-right">
                               <div className="flex gap-2 justify-end">
@@ -804,6 +836,19 @@ export default function Admin() {
               <div className="flex items-center justify-between p-4 bg-[#F8EDE3]/30 rounded-lg">
                 <div><Label>Catégorie active</Label><p className="text-sm text-gray-600">Visible dans le catalogue</p></div>
                 <Switch checked={categoryFormData.active} onCheckedChange={(checked) => setCategoryFormData({...categoryFormData, active: checked})} />
+              </div>
+              <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+                <div>
+                  <Label className="flex items-center gap-2">
+                    🎄 Catégorie Noël
+                  </Label>
+                  <p className="text-sm text-gray-600">Visible uniquement dans "Commande Noël"</p>
+                  <p className="text-xs text-gray-500 mt-1">Les produits de cette catégorie seront automatiquement tagués Noël</p>
+                </div>
+                <Switch 
+                  checked={categoryFormData.is_christmas} 
+                  onCheckedChange={(checked) => setCategoryFormData({...categoryFormData, is_christmas: checked})} 
+                />
               </div>
               <div className="flex gap-3 pt-4">
                 <Button variant="outline" onClick={() => setCategoryDialogOpen(false)} className="flex-1">Annuler</Button>
