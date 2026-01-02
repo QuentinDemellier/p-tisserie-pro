@@ -530,19 +530,21 @@ L'équipe de la Pâtisserie
                 />
               </div>
 
-              <div className="flex gap-3 items-center">
-                <Button
-                  variant={isChristmasMode ? "default" : "outline"}
-                  onClick={() => {
-                    setIsChristmasMode(!isChristmasMode);
-                    setSelectedCategory("all");
-                  }}
-                  className={isChristmasMode ? "bg-red-600 hover:bg-red-700 text-white" : "border-red-300 text-red-600 hover:bg-red-50"}
-                >
-                  <Snowflake className="w-4 h-4 mr-2" />
-                  Commande Noël
-                </Button>
-              </div>
+              {categories.some(cat => cat.active !== false && cat.is_christmas === true) && (
+                <div className="flex gap-3 items-center">
+                  <Button
+                    variant={isChristmasMode ? "default" : "outline"}
+                    onClick={() => {
+                      setIsChristmasMode(!isChristmasMode);
+                      setSelectedCategory("all");
+                    }}
+                    className={isChristmasMode ? "bg-red-600 hover:bg-red-700 text-white" : "border-red-300 text-red-600 hover:bg-red-50"}
+                  >
+                    <Snowflake className="w-4 h-4 mr-2" />
+                    Commande Noël
+                  </Button>
+                </div>
+              )}
 
               <div className="overflow-x-auto">
                 <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
