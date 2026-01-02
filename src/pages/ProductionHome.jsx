@@ -48,7 +48,7 @@ export default function ProductionHome() {
 
   // Filter orders by event type
   const todayOrders = orders.filter(order => {
-    if (order.pickup_date !== today || order.status === 'annulee') return false;
+    if (order.pickup_date !== today || order.status === 'Annulée') return false;
     
     if (eventFilter === "all") return true;
     
