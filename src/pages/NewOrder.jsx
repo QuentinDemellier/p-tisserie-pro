@@ -7,12 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart, Search, Calendar, User, Mail, Phone, CheckCircle, ArrowLeft, Edit } from "lucide-react";
+import { ShoppingCart, Search, Calendar, User, Mail, Phone, CheckCircle, ArrowLeft, Edit, Snowflake } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import ProductCard from "../components/order/ProductCard";
 import CartItem from "../components/order/CartItem";
+import SnowEffect from "../components/effects/SnowEffect";
 
 export default function NewOrder() {
   const [cart, setCart] = useState([]);
