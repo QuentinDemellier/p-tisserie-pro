@@ -25,7 +25,8 @@ export default function VendeurHome() {
   const [optimisticStatus, setOptimisticStatus] = useState({});
   const [editingOrder, setEditingOrder] = useState(null);
   const [editingOrderLines, setEditingOrderLines] = useState([]);
-  const today = new Date().toISOString().split('T')[0];
+  const todayDate = new Date();
+  const today = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
