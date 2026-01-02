@@ -551,7 +551,7 @@ L'équipe de la Pâtisserie
                       Tous
                     </TabsTrigger>
                     {categories
-                      .filter((cat) => !isChristmasMode || cat.is_christmas === true)
+                      .filter((cat) => isChristmasMode ? cat.is_christmas === true : cat.is_christmas !== true)
                       .map((cat) => (
                         <TabsTrigger
                           key={cat.id}
