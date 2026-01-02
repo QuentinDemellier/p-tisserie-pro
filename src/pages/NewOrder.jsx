@@ -222,15 +222,16 @@ L'équipe de la Pâtisserie
   });
 
   const handleSubmit = () => {
-    if (
-      !orderData.shop_id ||
-      !orderData.pickup_date ||
-      !orderData.customer_name ||
-      !orderData.customer_firstname ||
-      !orderData.customer_phone ||
-      !orderData.customer_email
-    ) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
+    const errors = [];
+    if (!orderData.shop_id) errors.push("Boutique de retrait");
+    if (!orderData.pickup_date) errors.push("Date de retrait");
+    if (!orderData.customer_firstname) errors.push("Prénom");
+    if (!orderData.customer_name) errors.push("Nom");
+    if (!orderData.customer_phone) errors.push("Téléphone");
+    if (!orderData.customer_email) errors.push("Email");
+
+    if (errors.length > 0) {
+      toast.error(`Champs manquants : ${errors.join(", ")}`);
       return;
     }
     setConfirmDialogOpen(true);
