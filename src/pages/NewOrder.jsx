@@ -514,24 +514,40 @@ L'équipe de la Pâtisserie
                 />
               </div>
 
-              <div className="overflow-x-auto">
-                <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <TabsList className="bg-white/80 backdrop-blur-sm border border-[#DFD3C3]/30 p-1 w-full md:w-auto inline-flex">
-                    <TabsTrigger value="all" className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm">
-                      Tous
-                    </TabsTrigger>
-                    {categories.map((cat) => (
-                      <TabsTrigger
-                        key={cat.id}
-                        value={cat.id}
-                        className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm whitespace-nowrap"
-                      >
-                        {cat.name}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
+              <div className="flex gap-3 items-center">
+                <Button
+                  variant={isChristmasMode ? "default" : "outline"}
+                  onClick={() => {
+                    setIsChristmasMode(!isChristmasMode);
+                    setSelectedCategory("all");
+                  }}
+                  className={isChristmasMode ? "bg-red-600 hover:bg-red-700 text-white" : "border-red-300 text-red-600 hover:bg-red-50"}
+                >
+                  <Snowflake className="w-4 h-4 mr-2" />
+                  Commande Noël
+                </Button>
               </div>
+
+              {!isChristmasMode && (
+                <div className="overflow-x-auto">
+                  <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <TabsList className="bg-white/80 backdrop-blur-sm border border-[#DFD3C3]/30 p-1 w-full md:w-auto inline-flex">
+                      <TabsTrigger value="all" className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm">
+                        Tous
+                      </TabsTrigger>
+                      {categories.map((cat) => (
+                        <TabsTrigger
+                          key={cat.id}
+                          value={cat.id}
+                          className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm whitespace-nowrap"
+                        >
+                          {cat.name}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </Tabs>
+                </div>
+              )}
             </div>
 
             {loadingProducts ? (
