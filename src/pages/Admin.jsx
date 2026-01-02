@@ -45,6 +45,8 @@ export default function Admin() {
   // Category states
   const [editingCategory, setEditingCategory] = useState(null);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [categoryFilterStatus, setCategoryFilterStatus] = useState("all");
+  const [categoryFilterChristmas, setCategoryFilterChristmas] = useState("all");
   const [categoryFormData, setCategoryFormData] = useState({
     name: "",
     description: "",
@@ -627,7 +629,29 @@ export default function Admin() {
 
           {/* CATEGORIES TAB */}
           <TabsContent value="categories">
-            <div className="flex justify-end mb-4">
+            <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
+              <div className="flex flex-wrap gap-2">
+                <Select value={categoryFilterStatus} onValueChange={setCategoryFilterStatus}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={categoryFilterChristmas} onValueChange={setCategoryFilterChristmas}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les types</SelectItem>
+                    <SelectItem value="christmas">🎄 Noël</SelectItem>
+                    <SelectItem value="regular">Classique</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button onClick={() => handleOpenCategoryDialog()} className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">
                 <Plus className="w-4 h-4 mr-2" />
                 Nouvelle catégorie
@@ -635,7 +659,13 @@ export default function Admin() {
             </div>
             <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90">
               <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
-                <CardTitle className="flex items-center gap-2"><Tag className="w-5 h-5 text-[#C98F75]" />Liste des catégories ({categories.length})</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Tag className="w-5 h-5 text-[#C98F75]" />Liste des catégories ({categories.filter(cat => {
+                  if (categoryFilterStatus === "active" && cat.active === false) return false;
+                  if (categoryFilterStatus === "inactive" && cat.active !== false) return false;
+                  if (categoryFilterChristmas === "christmas" && cat.is_christmas !== true) return false;
+                  if (categoryFilterChristmas === "regular" && cat.is_christmas === true) return false;
+                  return true;
+                }).length})</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 {loadingCategories ? (
@@ -656,7 +686,13 @@ export default function Admin() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {categories.map(category => (
+                        {categories.filter(cat => {
+                          if (categoryFilterStatus === "active" && cat.active === false) return false;
+                          if (categoryFilterStatus === "inactive" && cat.active !== false) return false;
+                          if (categoryFilterChristmas === "christmas" && cat.is_christmas !== true) return false;
+                          if (categoryFilterChristmas === "regular" && cat.is_christmas === true) return false;
+                          return true;
+                        }).map(category => (
                           <TableRow key={category.id} className="hover:bg-[#F8EDE3]/20">
                             <TableCell><div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E0A890] to-[#C98F75] flex items-center justify-center text-white font-bold">{category.order}</div></TableCell>
                             <TableCell className="font-semibold text-lg">{category.name}</TableCell>
