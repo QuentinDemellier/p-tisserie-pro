@@ -19,6 +19,7 @@ export default function NewOrder() {
   const [cart, setCart] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isChristmasMode, setIsChristmasMode] = useState(false);
   const [step, setStep] = useState(1); // 1: catalog, 2: summary
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [stockErrorDialogOpen, setStockErrorDialogOpen] = useState(false);
@@ -30,6 +31,7 @@ export default function NewOrder() {
     customer_firstname: "",
     customer_phone: "",
     customer_email: "",
+    ticket_number: "",
   });
 
   const { data: products = [], isLoading: loadingProducts } = useQuery({
