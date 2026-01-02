@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Factory, TrendingUp, Truck, Calendar, Package, CheckCircle2, Eye } from "lucide-react";
+import { Factory, TrendingUp, Truck, Calendar, Package, CheckCircle2, Eye, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -19,6 +19,7 @@ export default function ProductionHome() {
   const [checkedItems, setCheckedItems] = React.useState({});
   const [selectedShop, setSelectedShop] = React.useState(null);
   const [shopOrdersDialogOpen, setShopOrdersDialogOpen] = React.useState(false);
+  const [eventFilter, setEventFilter] = React.useState("all"); // all, christmas, valentine, epiphany, regular
 
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
@@ -35,10 +36,42 @@ export default function ProductionHome() {
     queryFn: () => base44.entities.Shop.list()
   });
 
-  const todayOrders = orders.filter(order => 
-    order.pickup_date === today &&
-    order.status !== 'annulee'
-  );
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => base44.entities.Product.list()
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => base44.entities.Category.list()
+  });
+
+  // Filter orders by event type
+  const todayOrders = orders.filter(order => {
+    if (order.pickup_date !== today || order.status === 'annulee') return false;
+    
+    if (eventFilter === "all") return true;
+    
+    // Get order lines to check product event types
+    const lines = orderLines.filter(line => line.order_id === order.id);
+    
+    return lines.some(line => {
+      const product = products.find(p => p.id === line.product_id);
+      const category = categories.find(c => c.id === product?.category_id);
+      
+      const isChristmas = product?.is_christmas === true || category?.is_christmas === true;
+      const isValentine = product?.is_valentine === true || category?.is_valentine === true;
+      const isEpiphany = product?.is_epiphany === true || category?.is_epiphany === true;
+      const isEvent = isChristmas || isValentine || isEpiphany;
+      
+      if (eventFilter === "christmas") return isChristmas;
+      if (eventFilter === "valentine") return isValentine;
+      if (eventFilter === "epiphany") return isEpiphany;
+      if (eventFilter === "regular") return !isEvent;
+      
+      return false;
+    });
+  });
 
   const productionSummary = {};
   todayOrders.forEach(order => {
@@ -142,11 +175,38 @@ export default function ProductionHome() {
     <div className="p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-            <Factory className="w-8 h-8 text-[#C98F75]" />
-            Tableau de bord production
-          </h1>
-          <p className="text-gray-600">Vue d'ensemble de la production du jour</p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <Factory className="w-8 h-8 text-[#C98F75]" />
+                Tableau de bord production
+              </h1>
+              <p className="text-gray-600">Vue d'ensemble de la production du jour</p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-500" />
+              <Tabs value={eventFilter} onValueChange={setEventFilter} className="w-auto">
+                <TabsList className="bg-white/80 backdrop-blur-sm border border-[#DFD3C3]/30">
+                  <TabsTrigger value="all" className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm">
+                    Tous
+                  </TabsTrigger>
+                  <TabsTrigger value="christmas" className="data-[state=active]:bg-red-600 data-[state=active]:text-white text-xs md:text-sm">
+                    🎄 Noël
+                  </TabsTrigger>
+                  <TabsTrigger value="valentine" className="data-[state=active]:bg-pink-600 data-[state=active]:text-white text-xs md:text-sm">
+                    ❤️ St-Valentin
+                  </TabsTrigger>
+                  <TabsTrigger value="epiphany" className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-xs md:text-sm">
+                    👑 Épiphanie
+                  </TabsTrigger>
+                  <TabsTrigger value="regular" className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm">
+                    Classique
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-8">
