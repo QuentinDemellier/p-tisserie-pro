@@ -31,7 +31,7 @@ export default function Admin() {
   const [bulkCategoryId, setBulkCategoryId] = useState("");
   const [productFilterCategory, setProductFilterCategory] = useState("all");
   const [productFilterStatus, setProductFilterStatus] = useState("all");
-  const [productFilterChristmas, setProductFilterChristmas] = useState("all");
+  const [productFilterEvent, setProductFilterEvent] = useState("all");
   const [productFormData, setProductFormData] = useState({
     name: "",
     price: "",
@@ -46,13 +46,15 @@ export default function Admin() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [categoryFilterStatus, setCategoryFilterStatus] = useState("all");
-  const [categoryFilterChristmas, setCategoryFilterChristmas] = useState("all");
+  const [categoryFilterEvent, setCategoryFilterEvent] = useState("all");
   const [categoryFormData, setCategoryFormData] = useState({
     name: "",
     description: "",
     order: 0,
     active: true,
-    is_christmas: false
+    is_christmas: false,
+    is_valentine: false,
+    is_epiphany: false
   });
 
   // Shop states
@@ -224,16 +226,17 @@ export default function Admin() {
       return;
     }
     
-    // Check if the selected category is a Christmas category
+    // Check the event type of the selected category
     const selectedCategory = categories.find(c => c.id === productFormData.category_id);
-    const isChristmasCategory = selectedCategory?.is_christmas === true;
-    
+
     const data = { 
       ...productFormData, 
       price: parseFloat(productFormData.price),
       unlimited_stock: productFormData.unlimited_stock,
       current_stock: parseInt(productFormData.current_stock) || 0,
-      is_christmas: isChristmasCategory
+      is_christmas: selectedCategory?.is_christmas === true,
+      is_valentine: selectedCategory?.is_valentine === true,
+      is_epiphany: selectedCategory?.is_epiphany === true
     };
     
     if (editingProduct) {
@@ -291,11 +294,13 @@ export default function Admin() {
         description: category.description || "", 
         order: category.order || 0, 
         active: category.active !== false,
-        is_christmas: category.is_christmas === true
+        is_christmas: category.is_christmas === true,
+        is_valentine: category.is_valentine === true,
+        is_epiphany: category.is_epiphany === true
       });
     } else {
       setEditingCategory(null);
-      setCategoryFormData({ name: "", description: "", order: categories.length, active: true, is_christmas: false });
+      setCategoryFormData({ name: "", description: "", order: categories.length, active: true, is_christmas: false, is_valentine: false, is_epiphany: false });
     }
     setCategoryDialogOpen(true);
   };
@@ -306,17 +311,25 @@ export default function Admin() {
       return;
     }
     const data = { ...categoryFormData, order: parseInt(categoryFormData.order) || 0 };
-    
+
     if (editingCategory) {
       // Update category
       await updateCategoryMutation.mutateAsync({ id: editingCategory.id, data });
-      
-      // If is_christmas changed, update all products in this category
-      if (data.is_christmas !== editingCategory.is_christmas) {
+
+      // If event flags changed, update all products in this category
+      const eventChanged = data.is_christmas !== editingCategory.is_christmas || 
+                           data.is_valentine !== editingCategory.is_valentine || 
+                           data.is_epiphany !== editingCategory.is_epiphany;
+
+      if (eventChanged) {
         const categoryProducts = products.filter(p => p.category_id === editingCategory.id);
         await Promise.all(
           categoryProducts.map(product => 
-            base44.entities.Product.update(product.id, { is_christmas: data.is_christmas })
+            base44.entities.Product.update(product.id, { 
+              is_christmas: data.is_christmas,
+              is_valentine: data.is_valentine,
+              is_epiphany: data.is_epiphany
+            })
           )
         );
         queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -431,11 +444,17 @@ export default function Admin() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Toutes les catégories</SelectItem>
-                    {categories.map(cat => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.is_christmas === true ? '🎄 ' : ''}{cat.name}
-                      </SelectItem>
-                    ))}
+                    {categories.map(cat => {
+                      let emoji = '';
+                      if (cat.is_christmas === true) emoji = '🎄 ';
+                      if (cat.is_valentine === true) emoji = '❤️ ';
+                      if (cat.is_epiphany === true) emoji = '👑 ';
+                      return (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {emoji}{cat.name}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <Select value={productFilterStatus} onValueChange={setProductFilterStatus}>
@@ -448,13 +467,15 @@ export default function Admin() {
                     <SelectItem value="inactive">Inactif</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={productFilterChristmas} onValueChange={setProductFilterChristmas}>
+                <Select value={productFilterEvent} onValueChange={setProductFilterEvent}>
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tous les types</SelectItem>
                     <SelectItem value="christmas">🎄 Noël</SelectItem>
+                    <SelectItem value="valentine">❤️ St-Valentin</SelectItem>
+                    <SelectItem value="epiphany">👑 Épiphanie</SelectItem>
                     <SelectItem value="regular">Classique</SelectItem>
                   </SelectContent>
                 </Select>
@@ -528,8 +549,13 @@ export default function Admin() {
                   if (productFilterStatus === "inactive" && product.active !== false) return false;
                   const category = categories.find(c => c.id === product.category_id);
                   const isChristmas = product.is_christmas === true || category?.is_christmas === true;
-                  if (productFilterChristmas === "christmas" && !isChristmas) return false;
-                  if (productFilterChristmas === "regular" && isChristmas) return false;
+                  const isValentine = product.is_valentine === true || category?.is_valentine === true;
+                  const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
+                  const isEvent = isChristmas || isValentine || isEpiphany;
+                  if (productFilterEvent === "christmas" && !isChristmas) return false;
+                  if (productFilterEvent === "valentine" && !isValentine) return false;
+                  if (productFilterEvent === "epiphany" && !isEpiphany) return false;
+                  if (productFilterEvent === "regular" && isEvent) return false;
                   return true;
                 }).length})</CardTitle>
               </CardHeader>
@@ -573,19 +599,34 @@ export default function Admin() {
                           if (productFilterStatus === "inactive" && product.active !== false) {
                             return false;
                           }
-                          // Filter by Christmas tag
+                          // Filter by event type
                           const category = categories.find(c => c.id === product.category_id);
                           const isChristmas = product.is_christmas === true || category?.is_christmas === true;
-                          if (productFilterChristmas === "christmas" && !isChristmas) {
+                          const isValentine = product.is_valentine === true || category?.is_valentine === true;
+                          const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
+                          const isEvent = isChristmas || isValentine || isEpiphany;
+                          if (productFilterEvent === "christmas" && !isChristmas) {
                             return false;
                           }
-                          if (productFilterChristmas === "regular" && isChristmas) {
+                          if (productFilterEvent === "valentine" && !isValentine) {
+                            return false;
+                          }
+                          if (productFilterEvent === "epiphany" && !isEpiphany) {
+                            return false;
+                          }
+                          if (productFilterEvent === "regular" && isEvent) {
                             return false;
                           }
                           return true;
                         }).map(product => {
                           const category = categories.find(c => c.id === product.category_id);
                           const isChristmas = product.is_christmas === true || category?.is_christmas === true;
+                          const isValentine = product.is_valentine === true || category?.is_valentine === true;
+                          const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
+                          let eventEmoji = '';
+                          if (isChristmas) eventEmoji = '🎄 ';
+                          if (isValentine) eventEmoji = '❤️ ';
+                          if (isEpiphany) eventEmoji = '👑 ';
                           return (
                             <TableRow key={product.id} className="hover:bg-[#F8EDE3]/20">
                               <TableCell>
@@ -599,7 +640,7 @@ export default function Admin() {
                                   {product.image_url ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" /> : <span className="text-2xl">🧁</span>}
                                 </div>
                               </TableCell>
-                              <TableCell className="font-semibold">{isChristmas ? '🎄 ' : ''}{product.name}</TableCell>
+                              <TableCell className="font-semibold">{eventEmoji}{product.name}</TableCell>
                               <TableCell><Badge variant="outline" className="border-[#E0A890] text-[#C98F75]">{category?.name || '-'}</Badge></TableCell>
                               <TableCell className="font-bold text-[#C98F75]">{product.price?.toFixed(2)} €</TableCell>
                               <TableCell>
@@ -641,13 +682,15 @@ export default function Admin() {
                     <SelectItem value="inactive">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={categoryFilterChristmas} onValueChange={setCategoryFilterChristmas}>
+                <Select value={categoryFilterEvent} onValueChange={setCategoryFilterEvent}>
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tous les types</SelectItem>
                     <SelectItem value="christmas">🎄 Noël</SelectItem>
+                    <SelectItem value="valentine">❤️ St-Valentin</SelectItem>
+                    <SelectItem value="epiphany">👑 Épiphanie</SelectItem>
                     <SelectItem value="regular">Classique</SelectItem>
                   </SelectContent>
                 </Select>
@@ -662,8 +705,11 @@ export default function Admin() {
                 <CardTitle className="flex items-center gap-2"><Tag className="w-5 h-5 text-[#C98F75]" />Liste des catégories ({categories.filter(cat => {
                   if (categoryFilterStatus === "active" && cat.active === false) return false;
                   if (categoryFilterStatus === "inactive" && cat.active !== false) return false;
-                  if (categoryFilterChristmas === "christmas" && cat.is_christmas !== true) return false;
-                  if (categoryFilterChristmas === "regular" && cat.is_christmas === true) return false;
+                  const isEvent = cat.is_christmas === true || cat.is_valentine === true || cat.is_epiphany === true;
+                  if (categoryFilterEvent === "christmas" && cat.is_christmas !== true) return false;
+                  if (categoryFilterEvent === "valentine" && cat.is_valentine !== true) return false;
+                  if (categoryFilterEvent === "epiphany" && cat.is_epiphany !== true) return false;
+                  if (categoryFilterEvent === "regular" && isEvent) return false;
                   return true;
                 }).length})</CardTitle>
               </CardHeader>
@@ -689,18 +735,24 @@ export default function Admin() {
                         {categories.filter(cat => {
                           if (categoryFilterStatus === "active" && cat.active === false) return false;
                           if (categoryFilterStatus === "inactive" && cat.active !== false) return false;
-                          if (categoryFilterChristmas === "christmas" && cat.is_christmas !== true) return false;
-                          if (categoryFilterChristmas === "regular" && cat.is_christmas === true) return false;
+                          const isEvent = cat.is_christmas === true || cat.is_valentine === true || cat.is_epiphany === true;
+                          if (categoryFilterEvent === "christmas" && cat.is_christmas !== true) return false;
+                          if (categoryFilterEvent === "valentine" && cat.is_valentine !== true) return false;
+                          if (categoryFilterEvent === "epiphany" && cat.is_epiphany !== true) return false;
+                          if (categoryFilterEvent === "regular" && isEvent) return false;
                           return true;
-                        }).map(category => (
+                        }).map(category => {
+                          let eventBadge = null;
+                          if (category.is_christmas === true) eventBadge = <Badge className="bg-red-100 text-red-800 border-red-300">🎄 Noël</Badge>;
+                          if (category.is_valentine === true) eventBadge = <Badge className="bg-pink-100 text-pink-800 border-pink-300">❤️ St-Valentin</Badge>;
+                          if (category.is_epiphany === true) eventBadge = <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">👑 Épiphanie</Badge>;
+                          return (
                           <TableRow key={category.id} className="hover:bg-[#F8EDE3]/20">
                             <TableCell><div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E0A890] to-[#C98F75] flex items-center justify-center text-white font-bold">{category.order}</div></TableCell>
                             <TableCell className="font-semibold text-lg">{category.name}</TableCell>
                             <TableCell className="text-gray-600">{category.description || '-'}</TableCell>
                             <TableCell>
-                              {category.is_christmas === true && (
-                                <Badge className="bg-red-100 text-red-800 border-red-300">🎄 Noël</Badge>
-                              )}
+                              {eventBadge}
                             </TableCell>
                             <TableCell><Badge className={category.active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>{category.active !== false ? "Active" : "Inactive"}</Badge></TableCell>
                             <TableCell className="text-right">
@@ -943,18 +995,61 @@ export default function Admin() {
                 <div><Label>Catégorie active</Label><p className="text-sm text-gray-600">Visible dans le catalogue</p></div>
                 <Switch checked={categoryFormData.active} onCheckedChange={(checked) => setCategoryFormData({...categoryFormData, active: checked})} />
               </div>
-              <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
-                <div>
-                  <Label className="flex items-center gap-2">
-                    🎄 Catégorie Noël
-                  </Label>
-                  <p className="text-sm text-gray-600">Visible uniquement dans "Commande Noël"</p>
-                  <p className="text-xs text-gray-500 mt-1">Les produits de cette catégorie seront automatiquement tagués Noël</p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      🎄 Catégorie Noël
+                    </Label>
+                    <p className="text-sm text-gray-600">Visible uniquement dans "Commande Noël"</p>
+                    <p className="text-xs text-gray-500 mt-1">Les produits seront automatiquement tagués Noël</p>
+                  </div>
+                  <Switch 
+                    checked={categoryFormData.is_christmas} 
+                    onCheckedChange={(checked) => setCategoryFormData({
+                      ...categoryFormData, 
+                      is_christmas: checked,
+                      is_valentine: checked ? false : categoryFormData.is_valentine,
+                      is_epiphany: checked ? false : categoryFormData.is_epiphany
+                    })} 
+                  />
                 </div>
-                <Switch 
-                  checked={categoryFormData.is_christmas} 
-                  onCheckedChange={(checked) => setCategoryFormData({...categoryFormData, is_christmas: checked})} 
-                />
+                <div className="flex items-center justify-between p-4 bg-pink-50 rounded-lg border border-pink-200">
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      ❤️ Catégorie Saint-Valentin
+                    </Label>
+                    <p className="text-sm text-gray-600">Visible uniquement dans "Commande Saint-Valentin"</p>
+                    <p className="text-xs text-gray-500 mt-1">Les produits seront automatiquement tagués Saint-Valentin</p>
+                  </div>
+                  <Switch 
+                    checked={categoryFormData.is_valentine} 
+                    onCheckedChange={(checked) => setCategoryFormData({
+                      ...categoryFormData, 
+                      is_valentine: checked,
+                      is_christmas: checked ? false : categoryFormData.is_christmas,
+                      is_epiphany: checked ? false : categoryFormData.is_epiphany
+                    })} 
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      👑 Catégorie Épiphanie
+                    </Label>
+                    <p className="text-sm text-gray-600">Visible uniquement dans "Commande Épiphanie"</p>
+                    <p className="text-xs text-gray-500 mt-1">Les produits seront automatiquement tagués Épiphanie</p>
+                  </div>
+                  <Switch 
+                    checked={categoryFormData.is_epiphany} 
+                    onCheckedChange={(checked) => setCategoryFormData({
+                      ...categoryFormData, 
+                      is_epiphany: checked,
+                      is_christmas: checked ? false : categoryFormData.is_christmas,
+                      is_valentine: checked ? false : categoryFormData.is_valentine
+                    })} 
+                  />
+                </div>
               </div>
               <div className="flex gap-3 pt-4">
                 <Button variant="outline" onClick={() => setCategoryDialogOpen(false)} className="flex-1">Annuler</Button>
