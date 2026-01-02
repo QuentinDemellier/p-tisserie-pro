@@ -217,9 +217,15 @@ export default function CatalogProducts() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Toutes les catégories</SelectItem>
-                      {categories.map(cat => (
-                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                      ))}
+                      {categories.map(cat => {
+                        let emoji = '';
+                        if (cat.is_christmas === true) emoji = '🎄 ';
+                        if (cat.is_valentine === true) emoji = '❤️ ';
+                        if (cat.is_epiphany === true) emoji = '👑 ';
+                        return (
+                          <SelectItem key={cat.id} value={cat.id}>{emoji}{cat.name}</SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
