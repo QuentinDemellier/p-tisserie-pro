@@ -199,8 +199,10 @@ L'équipe de la Pâtisserie
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || product.category_id === selectedCategory;
-    const categoryIsActive = allCategories.find((cat) => cat.id === product.category_id)?.active !== false;
-    const matchesChristmasMode = !isChristmasMode || product.is_christmas === true;
+    const category = allCategories.find((cat) => cat.id === product.category_id);
+    const categoryIsActive = category?.active !== false;
+    const isChristmas = product.is_christmas === true || category?.is_christmas === true;
+    const matchesChristmasMode = isChristmasMode ? isChristmas : !isChristmas;
     return matchesSearch && matchesCategory && categoryIsActive && matchesChristmasMode;
   });
 
