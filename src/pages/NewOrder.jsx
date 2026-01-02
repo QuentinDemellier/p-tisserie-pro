@@ -19,7 +19,7 @@ export default function NewOrder() {
   const [cart, setCart] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [isChristmasMode, setIsChristmasMode] = useState(false);
+  const [eventMode, setEventMode] = useState(null); // null, 'christmas', 'valentine', 'epiphany'
   const [step, setStep] = useState(1); // 1: catalog, 2: summary
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [stockErrorDialogOpen, setStockErrorDialogOpen] = useState(false);
@@ -138,7 +138,7 @@ L'équipe de la Pâtisserie
         customer_email: "",
         ticket_number: "",
         });
-        setIsChristmasMode(false);
+        setEventMode(null);
         },
         onError: (error) => {
       toast.error("Erreur lors de la création de la commande");
@@ -201,9 +201,24 @@ L'équipe de la Pâtisserie
     const matchesCategory = selectedCategory === "all" || product.category_id === selectedCategory;
     const category = allCategories.find((cat) => cat.id === product.category_id);
     const categoryIsActive = category?.active !== false;
+
     const isChristmas = product.is_christmas === true || category?.is_christmas === true;
-    const matchesChristmasMode = isChristmasMode ? isChristmas : !isChristmas;
-    return matchesSearch && matchesCategory && categoryIsActive && matchesChristmasMode;
+    const isValentine = product.is_valentine === true || category?.is_valentine === true;
+    const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
+    const isEvent = isChristmas || isValentine || isEpiphany;
+
+    let matchesEventMode = true;
+    if (eventMode === 'christmas') {
+      matchesEventMode = isChristmas;
+    } else if (eventMode === 'valentine') {
+      matchesEventMode = isValentine;
+    } else if (eventMode === 'epiphany') {
+      matchesEventMode = isEpiphany;
+    } else {
+      matchesEventMode = !isEvent;
+    }
+
+    return matchesSearch && matchesCategory && categoryIsActive && matchesEventMode;
   });
 
   const handleSubmit = () => {
@@ -353,7 +368,7 @@ L'équipe de la Pâtisserie
                 </div>
               </div>
 
-              {isChristmasMode && (
+              {eventMode && (
                 <div className="md:col-span-2">
                   <Label htmlFor="ticket_number">Numéro de ticket</Label>
                   <Input
@@ -493,7 +508,7 @@ L'équipe de la Pâtisserie
 
   return (
     <div className="p-4 md:p-8 relative">
-      {isChristmasMode && <SnowEffect />}
+      {eventMode === 'christmas' && <SnowEffect />}
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
@@ -530,21 +545,47 @@ L'équipe de la Pâtisserie
                 />
               </div>
 
-              {categories.some(cat => cat.active !== false && cat.is_christmas === true) && (
-                <div className="flex gap-3 items-center">
+              <div className="flex gap-3 items-center flex-wrap">
+                {categories.some(cat => cat.active !== false && cat.is_christmas === true) && (
                   <Button
-                    variant={isChristmasMode ? "default" : "outline"}
+                    variant={eventMode === 'christmas' ? "default" : "outline"}
                     onClick={() => {
-                      setIsChristmasMode(!isChristmasMode);
+                      setEventMode(eventMode === 'christmas' ? null : 'christmas');
                       setSelectedCategory("all");
                     }}
-                    className={isChristmasMode ? "bg-red-600 hover:bg-red-700 text-white" : "border-red-300 text-red-600 hover:bg-red-50"}
+                    className={eventMode === 'christmas' ? "bg-red-600 hover:bg-red-700 text-white" : "border-red-300 text-red-600 hover:bg-red-50"}
                   >
                     <Snowflake className="w-4 h-4 mr-2" />
                     Commande Noël
                   </Button>
-                </div>
-              )}
+                )}
+                {categories.some(cat => cat.active !== false && cat.is_valentine === true) && (
+                  <Button
+                    variant={eventMode === 'valentine' ? "default" : "outline"}
+                    onClick={() => {
+                      setEventMode(eventMode === 'valentine' ? null : 'valentine');
+                      setSelectedCategory("all");
+                    }}
+                    className={eventMode === 'valentine' ? "bg-pink-600 hover:bg-pink-700 text-white" : "border-pink-300 text-pink-600 hover:bg-pink-50"}
+                  >
+                    ❤️
+                    <span className="ml-2">Saint-Valentin</span>
+                  </Button>
+                )}
+                {categories.some(cat => cat.active !== false && cat.is_epiphany === true) && (
+                  <Button
+                    variant={eventMode === 'epiphany' ? "default" : "outline"}
+                    onClick={() => {
+                      setEventMode(eventMode === 'epiphany' ? null : 'epiphany');
+                      setSelectedCategory("all");
+                    }}
+                    className={eventMode === 'epiphany' ? "bg-yellow-600 hover:bg-yellow-700 text-white" : "border-yellow-300 text-yellow-600 hover:bg-yellow-50"}
+                  >
+                    👑
+                    <span className="ml-2">Épiphanie</span>
+                  </Button>
+                )}
+              </div>
 
               <div className="overflow-x-auto">
                 <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -553,16 +594,27 @@ L'équipe de la Pâtisserie
                       Tous
                     </TabsTrigger>
                     {categories
-                      .filter((cat) => isChristmasMode ? cat.is_christmas === true : cat.is_christmas !== true)
-                      .map((cat) => (
-                        <TabsTrigger
-                          key={cat.id}
-                          value={cat.id}
-                          className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm whitespace-nowrap"
-                        >
-                          {cat.is_christmas === true ? '🎄 ' : ''}{cat.name}
-                        </TabsTrigger>
-                      ))}
+                      .filter((cat) => {
+                        if (eventMode === 'christmas') return cat.is_christmas === true;
+                        if (eventMode === 'valentine') return cat.is_valentine === true;
+                        if (eventMode === 'epiphany') return cat.is_epiphany === true;
+                        return cat.is_christmas !== true && cat.is_valentine !== true && cat.is_epiphany !== true;
+                      })
+                      .map((cat) => {
+                        let emoji = '';
+                        if (cat.is_christmas === true) emoji = '🎄 ';
+                        if (cat.is_valentine === true) emoji = '❤️ ';
+                        if (cat.is_epiphany === true) emoji = '👑 ';
+                        return (
+                          <TabsTrigger
+                            key={cat.id}
+                            value={cat.id}
+                            className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm whitespace-nowrap"
+                          >
+                            {emoji}{cat.name}
+                          </TabsTrigger>
+                        );
+                      })}
                   </TabsList>
                 </Tabs>
               </div>
