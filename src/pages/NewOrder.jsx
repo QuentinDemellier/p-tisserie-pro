@@ -542,26 +542,26 @@ L'équipe de la Pâtisserie
                 </Button>
               </div>
 
-              {!isChristmasMode && (
-                <div className="overflow-x-auto">
-                  <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <TabsList className="bg-white/80 backdrop-blur-sm border border-[#DFD3C3]/30 p-1 w-full md:w-auto inline-flex">
-                      <TabsTrigger value="all" className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm">
-                        Tous
-                      </TabsTrigger>
-                      {categories.map((cat) => (
+              <div className="overflow-x-auto">
+                <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <TabsList className="bg-white/80 backdrop-blur-sm border border-[#DFD3C3]/30 p-1 w-full md:w-auto inline-flex">
+                    <TabsTrigger value="all" className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm">
+                      Tous
+                    </TabsTrigger>
+                    {categories
+                      .filter((cat) => !isChristmasMode || cat.is_christmas === true)
+                      .map((cat) => (
                         <TabsTrigger
                           key={cat.id}
                           value={cat.id}
                           className="data-[state=active]:bg-[#E0A890] data-[state=active]:text-white text-xs md:text-sm whitespace-nowrap"
                         >
-                          {cat.name}
+                          {cat.is_christmas === true ? '🎄 ' : ''}{cat.name}
                         </TabsTrigger>
                       ))}
-                    </TabsList>
-                  </Tabs>
-                </div>
-              )}
+                  </TabsList>
+                </Tabs>
+              </div>
             </div>
 
             {loadingProducts ? (
