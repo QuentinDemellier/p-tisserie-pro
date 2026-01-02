@@ -15,7 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import confetti from "canvas-confetti";
 
 export default function ProductionHome() {
-  const today = new Date().toISOString().split('T')[0];
+  const todayDate = new Date();
+  const today = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
   const [checkedItems, setCheckedItems] = React.useState({});
   const [selectedShop, setSelectedShop] = React.useState(null);
   const [shopOrdersDialogOpen, setShopOrdersDialogOpen] = React.useState(false);
