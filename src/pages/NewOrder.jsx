@@ -33,6 +33,7 @@ export default function NewOrder() {
     customer_email: "",
     ticket_number: "",
   });
+  const [formErrors, setFormErrors] = useState({});
 
   const { data: products = [], isLoading: loadingProducts } = useQuery({
     queryKey: ["products"],
@@ -222,16 +223,18 @@ L'équipe de la Pâtisserie
   });
 
   const handleSubmit = () => {
-    const errors = [];
-    if (!orderData.shop_id) errors.push("Boutique de retrait");
-    if (!orderData.pickup_date) errors.push("Date de retrait");
-    if (!orderData.customer_firstname) errors.push("Prénom");
-    if (!orderData.customer_name) errors.push("Nom");
-    if (!orderData.customer_phone) errors.push("Téléphone");
-    if (!orderData.customer_email) errors.push("Email");
+    const errors = {};
+    if (!orderData.shop_id) errors.shop_id = "Veuillez sélectionner une boutique";
+    if (!orderData.pickup_date) errors.pickup_date = "Veuillez sélectionner une date";
+    if (!orderData.customer_firstname) errors.customer_firstname = "Le prénom est obligatoire";
+    if (!orderData.customer_name) errors.customer_name = "Le nom est obligatoire";
+    if (!orderData.customer_phone) errors.customer_phone = "Le téléphone est obligatoire";
+    if (!orderData.customer_email) errors.customer_email = "L'email est obligatoire";
 
-    if (errors.length > 0) {
-      toast.error(`Champs manquants : ${errors.join(", ")}`);
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
     setConfirmDialogOpen(true);
@@ -282,8 +285,8 @@ L'équipe de la Pâtisserie
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="shop">Boutique de retrait *</Label>
-                <Select value={orderData.shop_id} onValueChange={(value) => setOrderData({ ...orderData, shop_id: value })}>
-                  <SelectTrigger className="mt-2 border-[#DFD3C3]">
+                <Select value={orderData.shop_id} onValueChange={(value) => { setOrderData({ ...orderData, shop_id: value }); setFormErrors({...formErrors, shop_id: undefined}); }}>
+                  <SelectTrigger className={`mt-2 ${formErrors.shop_id ? 'border-red-500' : 'border-[#DFD3C3]'}`}>
                     <SelectValue placeholder="Sélectionnez une boutique" />
                   </SelectTrigger>
                   <SelectContent>
@@ -294,6 +297,7 @@ L'équipe de la Pâtisserie
                     ))}
                   </SelectContent>
                 </Select>
+                {formErrors.shop_id && <p className="text-red-500 text-sm mt-1">{formErrors.shop_id}</p>}
               </div>
 
               <div>
@@ -304,11 +308,12 @@ L'équipe de la Pâtisserie
                     id="pickup_date"
                     type="date"
                     value={orderData.pickup_date}
-                    onChange={(e) => setOrderData({ ...orderData, pickup_date: e.target.value })}
-                    className="pl-10 border-[#DFD3C3]"
+                    onChange={(e) => { setOrderData({ ...orderData, pickup_date: e.target.value }); setFormErrors({...formErrors, pickup_date: undefined}); }}
+                    className={`pl-10 ${formErrors.pickup_date ? 'border-red-500' : 'border-[#DFD3C3]'}`}
                     min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
+                {formErrors.pickup_date && <p className="text-red-500 text-sm mt-1">{formErrors.pickup_date}</p>}
               </div>
 
               <div>
@@ -318,11 +323,12 @@ L'équipe de la Pâtisserie
                   <Input
                     id="customer_firstname"
                     value={orderData.customer_firstname}
-                    onChange={(e) => setOrderData({ ...orderData, customer_firstname: e.target.value })}
-                    className="pl-10 border-[#DFD3C3]"
+                    onChange={(e) => { setOrderData({ ...orderData, customer_firstname: e.target.value }); setFormErrors({...formErrors, customer_firstname: undefined}); }}
+                    className={`pl-10 ${formErrors.customer_firstname ? 'border-red-500' : 'border-[#DFD3C3]'}`}
                     placeholder="Prénom du client"
                   />
                 </div>
+                {formErrors.customer_firstname && <p className="text-red-500 text-sm mt-1">{formErrors.customer_firstname}</p>}
               </div>
 
               <div>
@@ -332,11 +338,12 @@ L'équipe de la Pâtisserie
                   <Input
                     id="customer_name"
                     value={orderData.customer_name}
-                    onChange={(e) => setOrderData({ ...orderData, customer_name: e.target.value })}
-                    className="pl-10 border-[#DFD3C3]"
+                    onChange={(e) => { setOrderData({ ...orderData, customer_name: e.target.value }); setFormErrors({...formErrors, customer_name: undefined}); }}
+                    className={`pl-10 ${formErrors.customer_name ? 'border-red-500' : 'border-[#DFD3C3]'}`}
                     placeholder="Nom du client"
                   />
                 </div>
+                {formErrors.customer_name && <p className="text-red-500 text-sm mt-1">{formErrors.customer_name}</p>}
               </div>
 
               <div>
@@ -347,11 +354,12 @@ L'équipe de la Pâtisserie
                     id="customer_phone"
                     type="tel"
                     value={orderData.customer_phone}
-                    onChange={(e) => setOrderData({ ...orderData, customer_phone: e.target.value })}
-                    className="pl-10 border-[#DFD3C3]"
+                    onChange={(e) => { setOrderData({ ...orderData, customer_phone: e.target.value }); setFormErrors({...formErrors, customer_phone: undefined}); }}
+                    className={`pl-10 ${formErrors.customer_phone ? 'border-red-500' : 'border-[#DFD3C3]'}`}
                     placeholder="06 12 34 56 78"
                   />
                 </div>
+                {formErrors.customer_phone && <p className="text-red-500 text-sm mt-1">{formErrors.customer_phone}</p>}
               </div>
 
               <div>
@@ -362,11 +370,12 @@ L'équipe de la Pâtisserie
                     id="customer_email"
                     type="email"
                     value={orderData.customer_email}
-                    onChange={(e) => setOrderData({ ...orderData, customer_email: e.target.value })}
-                    className="pl-10 border-[#DFD3C3]"
+                    onChange={(e) => { setOrderData({ ...orderData, customer_email: e.target.value }); setFormErrors({...formErrors, customer_email: undefined}); }}
+                    className={`pl-10 ${formErrors.customer_email ? 'border-red-500' : 'border-[#DFD3C3]'}`}
                     placeholder="client@exemple.fr"
                   />
                 </div>
+                {formErrors.customer_email && <p className="text-red-500 text-sm mt-1">{formErrors.customer_email}</p>}
               </div>
 
               {eventMode && (
