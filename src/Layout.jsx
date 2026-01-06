@@ -10,7 +10,8 @@ import {
   Cake,
   LogOut,
   Menu,
-  TrendingUp
+  TrendingUp,
+  Gift
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,14 +33,42 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState(null);
+  const [hasEventOrders, setHasEventOrders] = useState(false);
 
   useEffect(() => {
-  
-    base44.auth.me()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-   
+    const checkEventOrders = async () => {
+      try {
+        const userData = await base44.auth.me();
+        setUser(userData);
+        
+        // Check for event orders
+        const [orders, orderLines, products, categories] = await Promise.all([
+          base44.entities.Order.list(),
+          base44.entities.OrderLine.list(),
+          base44.entities.Product.list(),
+          base44.entities.Category.list()
+        ]);
+        
+        const hasEvent = orders.some(order => {
+          if (order.status === 'Annulée') return false;
+          const lines = orderLines.filter(line => line.order_id === order.id);
+          return lines.some(line => {
+            const product = products.find(p => p.id === line.product_id);
+            const category = categories.find(c => c.id === product?.category_id);
+            return product?.is_christmas || product?.is_valentine || product?.is_epiphany ||
+                   category?.is_christmas || category?.is_valentine || category?.is_epiphany;
+          });
+        });
+        
+        setHasEventOrders(hasEvent);
+      } catch {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkEventOrders();
   }, [currentPageName]);
 
   const cycleRole = () => {
@@ -75,12 +104,14 @@ export default function Layout({ children, currentPageName }) {
     vendeur: [
       { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
       { title: "Liste des commandes", url: createPageUrl("OrdersList"), icon: Store },
-      { title: "Commandes du jour", url: createPageUrl("VendeurHome"), icon: Cake }
+      { title: "Commandes du jour", url: createPageUrl("VendeurHome"), icon: Cake },
+      ...(hasEventOrders ? [{ title: "Récupération de commande", url: createPageUrl("EventOrders"), icon: Gift }] : [])
     ],
     boutique: [
       { title: "Accueil", url: createPageUrl("VendeurHome"), icon: Cake },
       { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
-      { title: "Toutes les commandes", url: createPageUrl("OrdersList"), icon: Store }
+      { title: "Toutes les commandes", url: createPageUrl("OrdersList"), icon: Store },
+      ...(hasEventOrders ? [{ title: "Récupération de commande", url: createPageUrl("EventOrders"), icon: Gift }] : [])
     ],
     production: [
       { title: "Planning production", url: createPageUrl("Production"), icon: Factory },

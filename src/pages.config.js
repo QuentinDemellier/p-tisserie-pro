@@ -9,6 +9,7 @@ import Production from './pages/Production';
 import ProductionHome from './pages/ProductionHome';
 import Reports from './pages/Reports';
 import VendeurHome from './pages/VendeurHome';
+import EventOrders from './pages/EventOrders';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "ProductionHome": ProductionHome,
     "Reports": Reports,
     "VendeurHome": VendeurHome,
+    "EventOrders": EventOrders,
 }
 
 export const pagesConfig = {
