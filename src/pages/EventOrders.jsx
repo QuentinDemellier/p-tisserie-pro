@@ -72,7 +72,8 @@ export default function EventOrders() {
 
   // Filter event orders
   const eventOrders = orders.filter(order => {
-    if (order.status === 'Annulée' || order.shop_id !== userShopId) return false;
+    if (order.status === 'Annulée') return false;
+    if (userShopId && order.shop_id !== userShopId) return false;
     
     const lines = allOrderLines.filter(line => line.order_id === order.id);
     return lines.some(line => {
