@@ -6,15 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Factory, Download, Package, Cake, AlertCircle } from "lucide-react";
+import { Calendar, Factory, Download, Package, Cake, AlertCircle, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Production() {
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [filterCategory, setFilterCategory] = useState("all");
 
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
@@ -31,6 +33,16 @@ export default function Production() {
     queryFn: () => base44.entities.Shop.list()
   });
 
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => base44.entities.Product.list()
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => base44.entities.Category.list('order')
+  });
+
   const filteredOrders = orders.filter(order => 
     order.pickup_date >= startDate && 
     order.pickup_date <= endDate &&
@@ -41,6 +53,24 @@ export default function Production() {
   filteredOrders.forEach(order => {
     const lines = orderLines.filter(line => line.order_id === order.id);
     lines.forEach(line => {
+      const product = products.find(p => p.id === line.product_id);
+      const category = categories.find(c => c.id === product?.category_id);
+      
+      // Apply category filter
+      if (filterCategory !== "all") {
+        if (filterCategory === "christmas" && !(product?.is_christmas || category?.is_christmas)) return;
+        if (filterCategory === "valentine" && !(product?.is_valentine || category?.is_valentine)) return;
+        if (filterCategory === "epiphany" && !(product?.is_epiphany || category?.is_epiphany)) return;
+        if (filterCategory === "custom" && !(product?.is_custom_event || category?.is_custom_event)) return;
+        if (filterCategory === "regular") {
+          const isEvent = product?.is_christmas || category?.is_christmas || 
+                         product?.is_valentine || category?.is_valentine || 
+                         product?.is_epiphany || category?.is_epiphany ||
+                         product?.is_custom_event || category?.is_custom_event;
+          if (isEvent) return;
+        }
+      }
+      
       if (!productionSummary[line.product_name]) {
         productionSummary[line.product_name] = 0;
       }
@@ -123,38 +153,66 @@ export default function Production() {
           </CardContent>
         </Card>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-[#E0A890]/10 to-white">
-            <CardHeader>
+        <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-[#E0A890]/10 to-white mb-6">
+          <CardHeader className="border-b border-[#DFD3C3]/30">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <CardTitle className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-[#C98F75]" />
                 Synthèse par produit
               </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {productionList.length === 0 ? (
-                <p className="text-center py-8 text-gray-500">Aucune commande sur cette période</p>
-              ) : (
-                <div className="space-y-3">
-                  {productionList.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center p-4 bg-white rounded-lg border border-[#DFD3C3]/30 hover:shadow-md transition-shadow"
-                    >
-                      <span className="font-medium text-gray-800">{item.name}</span>
-                      <span className="text-2xl font-bold text-[#C98F75]">{item.quantity}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-gray-500" />
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filtrer par type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les produits</SelectItem>
+                    {categories.some(cat => cat.active !== false && cat.is_christmas === true) && (
+                      <SelectItem value="christmas">🎄 Noël</SelectItem>
+                    )}
+                    {categories.some(cat => cat.active !== false && cat.is_valentine === true) && (
+                      <SelectItem value="valentine">❤️ St-Valentin</SelectItem>
+                    )}
+                    {categories.some(cat => cat.active !== false && cat.is_epiphany === true) && (
+                      <SelectItem value="epiphany">👑 Épiphanie</SelectItem>
+                    )}
+                    {categories.some(cat => cat.active !== false && cat.is_custom_event === true) && (
+                      <SelectItem value="custom">
+                        {categories.find(cat => cat.active !== false && cat.is_custom_event === true)?.event_icon || '🎉'} Personnalisée
+                      </SelectItem>
+                    )}
+                    <SelectItem value="regular">Classique</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            {productionList.length === 0 ? (
+              <p className="text-center py-8 text-gray-500">Aucune commande sur cette période</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {productionList.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center p-4 bg-white rounded-lg border border-[#DFD3C3]/30 hover:shadow-md transition-shadow"
+                  >
+                    <span className="font-medium text-gray-800">{item.name}</span>
+                    <span className="text-2xl font-bold text-[#C98F75]">{item.quantity}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-[#DFD3C3]/10 to-white">
-            <CardHeader>
-              <CardTitle>Statistiques</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-[#DFD3C3]/10 to-white mb-6">
+          <CardHeader>
+            <CardTitle>Statistiques</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-white rounded-lg border border-[#DFD3C3]/30">
                 <p className="text-sm text-gray-600 mb-1">Commandes à préparer</p>
                 <p className="text-3xl font-bold text-[#C98F75]">{filteredOrders.length}</p>
@@ -169,9 +227,9 @@ export default function Production() {
                   {productionList.reduce((sum, item) => sum + item.quantity, 0)}
                 </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm">
           <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
