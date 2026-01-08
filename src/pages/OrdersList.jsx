@@ -47,6 +47,21 @@ export default function OrdersList() {
     queryFn: () => base44.entities.Shop.list()
   });
 
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => base44.entities.Product.list()
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => base44.entities.Category.list()
+  });
+
+  const { data: allOrderLines = [] } = useQuery({
+    queryKey: ['allOrderLines'],
+    queryFn: () => base44.entities.OrderLine.list()
+  });
+
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
       order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -169,6 +184,29 @@ export default function OrdersList() {
 
   const getStatusLabel = (status) => {
     return status || "Enregistrée";
+  };
+
+  const getOrderEventBadge = (orderId) => {
+    const lines = allOrderLines.filter(line => line.order_id === orderId);
+    
+    for (const line of lines) {
+      const product = products.find(p => p.id === line.product_id);
+      const category = categories.find(c => c.id === product?.category_id);
+      
+      if (product?.is_christmas || category?.is_christmas) {
+        return '🎄';
+      }
+      if (product?.is_valentine || category?.is_valentine) {
+        return '❤️';
+      }
+      if (product?.is_epiphany || category?.is_epiphany) {
+        return '👑';
+      }
+      if (product?.is_custom_event || category?.is_custom_event) {
+        return category?.event_icon || '🎉';
+      }
+    }
+    return null;
   };
 
   const exportToCSV = () => {
@@ -295,10 +333,14 @@ export default function OrdersList() {
                   ) : (
                     filteredOrders.map(order => {
                       const shop = shops.find(s => s.id === order.shop_id);
+                      const eventIcon = getOrderEventBadge(order.id);
                       return (
                         <TableRow key={order.id} className="hover:bg-[#F8EDE3]/20">
                           <TableCell className="font-mono text-sm font-semibold text-[#C98F75]">
-                            {order.order_number}
+                            <div className="flex items-center gap-2">
+                              {eventIcon && <span className="text-lg">{eventIcon}</span>}
+                              {order.order_number}
+                            </div>
                           </TableCell>
                           <TableCell>
                             {order.customer_firstname} {order.customer_name}
