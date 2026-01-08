@@ -486,6 +486,7 @@ export default function Admin() {
                     <SelectItem value="christmas">🎄 Noël</SelectItem>
                     <SelectItem value="valentine">❤️ St-Valentin</SelectItem>
                     <SelectItem value="epiphany">👑 Épiphanie</SelectItem>
+                    <SelectItem value="custom">🎉 Personnalisée</SelectItem>
                     <SelectItem value="regular">Classique</SelectItem>
                   </SelectContent>
                 </Select>
@@ -709,6 +710,7 @@ export default function Admin() {
                     <SelectItem value="christmas">🎄 Noël</SelectItem>
                     <SelectItem value="valentine">❤️ St-Valentin</SelectItem>
                     <SelectItem value="epiphany">👑 Épiphanie</SelectItem>
+                    <SelectItem value="custom">🎉 Personnalisée</SelectItem>
                     <SelectItem value="regular">Classique</SelectItem>
                   </SelectContent>
                 </Select>
