@@ -56,7 +56,6 @@ export default function Admin() {
     is_valentine: false,
     is_epiphany: false,
     is_custom_event: false,
-    event_name: "",
     event_color: "#9333ea",
     event_icon: "🎉"
   });
@@ -303,13 +302,12 @@ export default function Admin() {
         is_valentine: category.is_valentine === true,
         is_epiphany: category.is_epiphany === true,
         is_custom_event: category.is_custom_event === true,
-        event_name: category.event_name || "",
         event_color: category.event_color || "#9333ea",
         event_icon: category.event_icon || "🎉"
       });
     } else {
       setEditingCategory(null);
-      setCategoryFormData({ name: "", description: "", order: categories.length, active: true, is_christmas: false, is_valentine: false, is_epiphany: false, is_custom_event: false, event_name: "", event_color: "#9333ea", event_icon: "🎉" });
+      setCategoryFormData({ name: "", description: "", order: categories.length, active: true, is_christmas: false, is_valentine: false, is_epiphany: false, is_custom_event: false, event_color: "#9333ea", event_icon: "🎉" });
     }
     setCategoryDialogOpen(true);
   };
@@ -771,7 +769,7 @@ export default function Admin() {
                           if (category.is_valentine === true) eventBadge = <Badge className="bg-pink-100 text-pink-800 border-pink-300">❤️ St-Valentin</Badge>;
                           if (category.is_epiphany === true) eventBadge = <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">👑 Épiphanie</Badge>;
                           if (category.is_custom_event === true) {
-                            eventBadge = <Badge style={{ backgroundColor: category.event_color + '20', color: category.event_color, borderColor: category.event_color + '50' }}>{category.event_icon} {category.event_name || category.name}</Badge>;
+                            eventBadge = <Badge style={{ backgroundColor: category.event_color + '20', color: category.event_color, borderColor: category.event_color + '50' }}>{category.event_icon} {category.name}</Badge>;
                           }
                           return (
                           <TableRow key={category.id} className="hover:bg-[#F8EDE3]/20">
@@ -1191,15 +1189,6 @@ export default function Admin() {
                 </div>
                 {categoryFormData.is_custom_event && (
                   <div className="space-y-3 p-4 bg-purple-50/50 rounded-lg border border-purple-200">
-                    <div>
-                      <Label>Nom de l'événement *</Label>
-                      <Input 
-                        value={categoryFormData.event_name} 
-                        onChange={(e) => setCategoryFormData({...categoryFormData, event_name: e.target.value})}
-                        placeholder="Ex: Fête des mères, Halloween..."
-                        className="mt-2"
-                      />
-                    </div>
                     <div>
                       <Label>Couleur de l'événement</Label>
                       <div className="flex gap-2 mt-2">
