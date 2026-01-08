@@ -1038,12 +1038,34 @@ export default function Admin() {
                   </div>
                   <Switch 
                     checked={categoryFormData.is_christmas} 
-                    onCheckedChange={(checked) => setCategoryFormData({
-                      ...categoryFormData, 
-                      is_christmas: checked,
-                      is_valentine: checked ? false : categoryFormData.is_valentine,
-                      is_epiphany: checked ? false : categoryFormData.is_epiphany
-                    })} 
+                    onCheckedChange={async (checked) => {
+                      if (checked) {
+                        const otherEventCategories = categories.filter(cat => 
+                          cat.id !== editingCategory?.id && 
+                          (cat.is_christmas || cat.is_valentine || cat.is_epiphany || cat.is_custom_event)
+                        );
+                        if (otherEventCategories.length > 0) {
+                          await Promise.all(
+                            otherEventCategories.map(cat => 
+                              base44.entities.Category.update(cat.id, { 
+                                is_christmas: false, 
+                                is_valentine: false, 
+                                is_epiphany: false,
+                                is_custom_event: false
+                              })
+                            )
+                          );
+                          queryClient.invalidateQueries({ queryKey: ['categories'] });
+                        }
+                      }
+                      setCategoryFormData({
+                        ...categoryFormData, 
+                        is_christmas: checked,
+                        is_valentine: false,
+                        is_epiphany: false,
+                        is_custom_event: false
+                      });
+                    }} 
                   />
                 </div>
                 <div className="flex items-center justify-between p-4 bg-pink-50 rounded-lg border border-pink-200">
@@ -1056,12 +1078,34 @@ export default function Admin() {
                   </div>
                   <Switch 
                     checked={categoryFormData.is_valentine} 
-                    onCheckedChange={(checked) => setCategoryFormData({
-                      ...categoryFormData, 
-                      is_valentine: checked,
-                      is_christmas: checked ? false : categoryFormData.is_christmas,
-                      is_epiphany: checked ? false : categoryFormData.is_epiphany
-                    })} 
+                    onCheckedChange={async (checked) => {
+                      if (checked) {
+                        const otherEventCategories = categories.filter(cat => 
+                          cat.id !== editingCategory?.id && 
+                          (cat.is_christmas || cat.is_valentine || cat.is_epiphany || cat.is_custom_event)
+                        );
+                        if (otherEventCategories.length > 0) {
+                          await Promise.all(
+                            otherEventCategories.map(cat => 
+                              base44.entities.Category.update(cat.id, { 
+                                is_christmas: false, 
+                                is_valentine: false, 
+                                is_epiphany: false,
+                                is_custom_event: false
+                              })
+                            )
+                          );
+                          queryClient.invalidateQueries({ queryKey: ['categories'] });
+                        }
+                      }
+                      setCategoryFormData({
+                        ...categoryFormData, 
+                        is_valentine: checked,
+                        is_christmas: false,
+                        is_epiphany: false,
+                        is_custom_event: false
+                      });
+                    }} 
                   />
                 </div>
                 <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200">
