@@ -748,6 +748,7 @@ export default function Admin() {
                           <TableHead>Nom</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead>Type</TableHead>
+                          <TableHead>Produits</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -778,6 +779,11 @@ export default function Admin() {
                             <TableCell className="text-gray-600">{category.description || '-'}</TableCell>
                             <TableCell>
                               {eventBadge}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="border-[#E0A890] text-[#C98F75]">
+                                {products.filter(p => p.category_id === category.id).length}
+                              </Badge>
                             </TableCell>
                             <TableCell><Badge className={category.active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>{category.active !== false ? "Active" : "Inactive"}</Badge></TableCell>
                             <TableCell className="text-right">
