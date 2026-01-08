@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function Production() {
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterCategoryId, setFilterCategoryId] = useState("all");
 
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
@@ -54,20 +54,20 @@ export default function Production() {
     const lines = orderLines.filter(line => line.order_id === order.id);
     lines.forEach(line => {
       const product = products.find(p => p.id === line.product_id);
-      const category = categories.find(c => c.id === product?.category_id);
       
       // Apply category filter
-      if (filterCategory !== "all") {
-        if (filterCategory === "christmas" && !(product?.is_christmas || category?.is_christmas)) return;
-        if (filterCategory === "valentine" && !(product?.is_valentine || category?.is_valentine)) return;
-        if (filterCategory === "epiphany" && !(product?.is_epiphany || category?.is_epiphany)) return;
-        if (filterCategory === "custom" && !(product?.is_custom_event || category?.is_custom_event)) return;
-        if (filterCategory === "regular") {
+      if (filterCategoryId !== "all") {
+        if (filterCategoryId === "regular") {
+          // Produits sans catégorie événementielle
+          const category = categories.find(c => c.id === product?.category_id);
           const isEvent = product?.is_christmas || category?.is_christmas || 
                          product?.is_valentine || category?.is_valentine || 
                          product?.is_epiphany || category?.is_epiphany ||
                          product?.is_custom_event || category?.is_custom_event;
           if (isEvent) return;
+        } else {
+          // Filtrer par catégorie spécifique
+          if (product?.category_id !== filterCategoryId) return;
         }
       }
       
@@ -162,27 +162,25 @@ export default function Production() {
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-gray-500" />
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <Select value={filterCategoryId} onValueChange={setFilterCategoryId}>
                   <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Filtrer par type" />
+                    <SelectValue placeholder="Filtrer par catégorie" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tous les produits</SelectItem>
-                    {categories.some(cat => cat.is_christmas === true) && (
-                      <SelectItem value="christmas">🎄 Noël</SelectItem>
-                    )}
-                    {categories.some(cat => cat.is_valentine === true) && (
-                      <SelectItem value="valentine">❤️ St-Valentin</SelectItem>
-                    )}
-                    {categories.some(cat => cat.is_epiphany === true) && (
-                      <SelectItem value="epiphany">👑 Épiphanie</SelectItem>
-                    )}
-                    {categories.some(cat => cat.is_custom_event === true) && (
-                      <SelectItem value="custom">
-                        {categories.find(cat => cat.is_custom_event === true)?.event_icon || '🎉'} Personnalisée
-                      </SelectItem>
-                    )}
+                    <SelectItem value="all">Toutes les catégories</SelectItem>
                     <SelectItem value="regular">Classique</SelectItem>
+                    {categories.map(cat => {
+                      let emoji = '';
+                      if (cat.is_christmas) emoji = '🎄 ';
+                      if (cat.is_valentine) emoji = '❤️ ';
+                      if (cat.is_epiphany) emoji = '👑 ';
+                      if (cat.is_custom_event) emoji = (cat.event_icon || '🎉') + ' ';
+                      return (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {emoji}{cat.name}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
