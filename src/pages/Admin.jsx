@@ -1017,7 +1017,7 @@ export default function Admin() {
 
         {/* Category Dialog */}
         <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editingCategory ? "Modifier la catégorie" : "Nouvelle catégorie"}</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div><Label>Nom *</Label><Input value={categoryFormData.name} onChange={(e) => setCategoryFormData({...categoryFormData, name: e.target.value})} className="mt-2" /></div>
@@ -1074,13 +1074,34 @@ export default function Admin() {
                   </div>
                   <Switch 
                     checked={categoryFormData.is_epiphany} 
-                    onCheckedChange={(checked) => setCategoryFormData({
-                      ...categoryFormData, 
-                      is_epiphany: checked,
-                      is_christmas: checked ? false : categoryFormData.is_christmas,
-                      is_valentine: checked ? false : categoryFormData.is_valentine,
-                      is_custom_event: checked ? false : categoryFormData.is_custom_event
-                    })} 
+                    onCheckedChange={async (checked) => {
+                      if (checked) {
+                        const otherEventCategories = categories.filter(cat => 
+                          cat.id !== editingCategory?.id && 
+                          (cat.is_christmas || cat.is_valentine || cat.is_epiphany || cat.is_custom_event)
+                        );
+                        if (otherEventCategories.length > 0) {
+                          await Promise.all(
+                            otherEventCategories.map(cat => 
+                              base44.entities.Category.update(cat.id, { 
+                                is_christmas: false, 
+                                is_valentine: false, 
+                                is_epiphany: false,
+                                is_custom_event: false
+                              })
+                            )
+                          );
+                          queryClient.invalidateQueries({ queryKey: ['categories'] });
+                        }
+                      }
+                      setCategoryFormData({
+                        ...categoryFormData, 
+                        is_epiphany: checked,
+                        is_christmas: false,
+                        is_valentine: false,
+                        is_custom_event: false
+                      });
+                    }} 
                   />
                 </div>
                 <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border border-purple-200">
@@ -1092,13 +1113,34 @@ export default function Admin() {
                   </div>
                   <Switch 
                     checked={categoryFormData.is_custom_event} 
-                    onCheckedChange={(checked) => setCategoryFormData({
-                      ...categoryFormData, 
-                      is_custom_event: checked,
-                      is_christmas: checked ? false : categoryFormData.is_christmas,
-                      is_valentine: checked ? false : categoryFormData.is_valentine,
-                      is_epiphany: checked ? false : categoryFormData.is_epiphany
-                    })} 
+                    onCheckedChange={async (checked) => {
+                      if (checked) {
+                        const otherEventCategories = categories.filter(cat => 
+                          cat.id !== editingCategory?.id && 
+                          (cat.is_christmas || cat.is_valentine || cat.is_epiphany || cat.is_custom_event)
+                        );
+                        if (otherEventCategories.length > 0) {
+                          await Promise.all(
+                            otherEventCategories.map(cat => 
+                              base44.entities.Category.update(cat.id, { 
+                                is_christmas: false, 
+                                is_valentine: false, 
+                                is_epiphany: false,
+                                is_custom_event: false
+                              })
+                            )
+                          );
+                          queryClient.invalidateQueries({ queryKey: ['categories'] });
+                        }
+                      }
+                      setCategoryFormData({
+                        ...categoryFormData, 
+                        is_custom_event: checked,
+                        is_christmas: false,
+                        is_valentine: false,
+                        is_epiphany: false
+                      });
+                    }} 
                   />
                 </div>
                 {categoryFormData.is_custom_event && (
