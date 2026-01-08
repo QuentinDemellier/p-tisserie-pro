@@ -258,10 +258,38 @@ export default function Production() {
                     filteredOrders.map(order => {
                       const lines = orderLines.filter(line => line.order_id === order.id);
                       const shop = shops.find(s => s.id === order.shop_id);
+                      
+                      // Déterminer l'icône d'événement
+                      let eventIcon = null;
+                      for (const line of lines) {
+                        const product = products.find(p => p.id === line.product_id);
+                        const category = categories.find(c => c.id === product?.category_id);
+                        
+                        if (product?.is_christmas || category?.is_christmas) {
+                          eventIcon = '🎄';
+                          break;
+                        }
+                        if (product?.is_valentine || category?.is_valentine) {
+                          eventIcon = '❤️';
+                          break;
+                        }
+                        if (product?.is_epiphany || category?.is_epiphany) {
+                          eventIcon = '👑';
+                          break;
+                        }
+                        if (product?.is_custom_event || category?.is_custom_event) {
+                          eventIcon = category?.event_icon || '🎉';
+                          break;
+                        }
+                      }
+                      
                       return (
                         <TableRow key={order.id} className="hover:bg-[#F8EDE3]/20">
                           <TableCell className="font-mono text-sm font-semibold text-[#C98F75]">
-                            {order.order_number}
+                            <div className="flex items-center gap-2">
+                              {eventIcon && <span className="text-lg">{eventIcon}</span>}
+                              {order.order_number}
+                            </div>
                           </TableCell>
                           <TableCell>
                             {order.customer_firstname} {order.customer_name}
