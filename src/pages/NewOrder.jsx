@@ -206,7 +206,8 @@ L'équipe de la Pâtisserie
     const isChristmas = product.is_christmas === true || category?.is_christmas === true;
     const isValentine = product.is_valentine === true || category?.is_valentine === true;
     const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
-    const isEvent = isChristmas || isValentine || isEpiphany;
+    const isCustomEvent = product.is_custom_event === true || category?.is_custom_event === true;
+    const isEvent = isChristmas || isValentine || isEpiphany || isCustomEvent;
 
     let matchesEventMode = true;
     if (eventMode === 'christmas') {
@@ -215,6 +216,8 @@ L'équipe de la Pâtisserie
       matchesEventMode = isValentine;
     } else if (eventMode === 'epiphany') {
       matchesEventMode = isEpiphany;
+    } else if (eventMode === 'custom') {
+      matchesEventMode = isCustomEvent;
     } else {
       matchesEventMode = !isEvent;
     }
@@ -595,6 +598,28 @@ L'équipe de la Pâtisserie
                     <span className="ml-2">Épiphanie</span>
                   </Button>
                 )}
+                {categories
+                  .filter(cat => cat.active !== false && cat.is_custom_event === true)
+                  .map(cat => (
+                    <Button
+                      key={cat.id}
+                      variant={eventMode === 'custom' ? "default" : "outline"}
+                      onClick={() => {
+                        setEventMode(eventMode === 'custom' ? null : 'custom');
+                        setSelectedCategory("all");
+                      }}
+                      style={{
+                        backgroundColor: eventMode === 'custom' ? cat.event_color : 'transparent',
+                        color: eventMode === 'custom' ? 'white' : cat.event_color,
+                        borderColor: cat.event_color
+                      }}
+                      className={eventMode === 'custom' ? "" : "hover:opacity-80"}
+                    >
+                      {cat.event_icon}
+                      <span className="ml-2">{cat.name}</span>
+                    </Button>
+                  ))
+                }
               </div>
 
               <div className="overflow-x-auto">
@@ -608,13 +633,15 @@ L'équipe de la Pâtisserie
                         if (eventMode === 'christmas') return cat.is_christmas === true;
                         if (eventMode === 'valentine') return cat.is_valentine === true;
                         if (eventMode === 'epiphany') return cat.is_epiphany === true;
-                        return cat.is_christmas !== true && cat.is_valentine !== true && cat.is_epiphany !== true;
+                        if (eventMode === 'custom') return cat.is_custom_event === true;
+                        return cat.is_christmas !== true && cat.is_valentine !== true && cat.is_epiphany !== true && cat.is_custom_event !== true;
                       })
                       .map((cat) => {
                         let emoji = '';
                         if (cat.is_christmas === true) emoji = '🎄 ';
                         if (cat.is_valentine === true) emoji = '❤️ ';
                         if (cat.is_epiphany === true) emoji = '👑 ';
+                        if (cat.is_custom_event === true) emoji = (cat.event_icon || '🎉') + ' ';
                         return (
                           <TabsTrigger
                             key={cat.id}
