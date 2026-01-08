@@ -168,18 +168,18 @@ export default function Production() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tous les produits</SelectItem>
-                    {categories.some(cat => cat.active !== false && cat.is_christmas === true) && (
+                    {categories.some(cat => cat.is_christmas === true) && (
                       <SelectItem value="christmas">🎄 Noël</SelectItem>
                     )}
-                    {categories.some(cat => cat.active !== false && cat.is_valentine === true) && (
+                    {categories.some(cat => cat.is_valentine === true) && (
                       <SelectItem value="valentine">❤️ St-Valentin</SelectItem>
                     )}
-                    {categories.some(cat => cat.active !== false && cat.is_epiphany === true) && (
+                    {categories.some(cat => cat.is_epiphany === true) && (
                       <SelectItem value="epiphany">👑 Épiphanie</SelectItem>
                     )}
-                    {categories.some(cat => cat.active !== false && cat.is_custom_event === true) && (
+                    {categories.some(cat => cat.is_custom_event === true) && (
                       <SelectItem value="custom">
-                        {categories.find(cat => cat.active !== false && cat.is_custom_event === true)?.event_icon || '🎉'} Personnalisée
+                        {categories.find(cat => cat.is_custom_event === true)?.event_icon || '🎉'} Personnalisée
                       </SelectItem>
                     )}
                     <SelectItem value="regular">Classique</SelectItem>
