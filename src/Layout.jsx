@@ -115,7 +115,6 @@ export default function Layout({ children, currentPageName }) {
     ],
     production: [
       { title: "Planning production", url: createPageUrl("Production"), icon: Factory },
-      { title: "Livraison du jour", url: createPageUrl("ProductionHome"), icon: Cake },
       { title: "Livraison", url: createPageUrl("DeliveryPrep"), icon: Store },
       { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: ShoppingCart }
     ],
