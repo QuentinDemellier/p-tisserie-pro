@@ -132,32 +132,32 @@ export default function Production() {
 
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
           <CardContent className="p-4 sm:p-6">
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={filterMode === "today" ? "default" : "outline"}
-                  onClick={() => handleFilterMode("today")}
-                  className={filterMode === "today" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
-                >
-                  Production du jour
-                </Button>
-                <Button
-                  variant={filterMode === "tomorrow" ? "default" : "outline"}
-                  onClick={() => handleFilterMode("tomorrow")}
-                  className={filterMode === "tomorrow" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
-                >
-                  Production demain
-                </Button>
-                <Button
-                  variant={filterMode === "custom" ? "default" : "outline"}
-                  onClick={() => setFilterMode("custom")}
-                  className={filterMode === "custom" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
-                >
-                  Plage de production
-                </Button>
-              </div>
+            {filterMode === "custom" ? (
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleFilterMode("today")}
+                    className="border-[#DFD3C3]"
+                  >
+                    Production du jour
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleFilterMode("tomorrow")}
+                    className="border-[#DFD3C3]"
+                  >
+                    Production demain
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={() => setFilterMode("custom")}
+                    className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
+                  >
+                    Plage de production
+                  </Button>
+                </div>
 
-              {filterMode === "custom" && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-end">
                   <div>
                     <Label htmlFor="start_date" className="flex items-center gap-2 mb-2 text-sm">
@@ -194,20 +194,41 @@ export default function Production() {
                     Exporter
                   </Button>
                 </div>
-              )}
-
-              {filterMode !== "custom" && (
-                <div className="flex justify-end">
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap gap-2">
                   <Button
-                    onClick={exportProduction}
-                    className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
+                    variant={filterMode === "today" ? "default" : "outline"}
+                    onClick={() => handleFilterMode("today")}
+                    className={filterMode === "today" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
                   >
-                    <Download className="w-4 h-4 mr-2" />
-                    Exporter
+                    Production du jour
+                  </Button>
+                  <Button
+                    variant={filterMode === "tomorrow" ? "default" : "outline"}
+                    onClick={() => handleFilterMode("tomorrow")}
+                    className={filterMode === "tomorrow" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
+                  >
+                    Production demain
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setFilterMode("custom")}
+                    className="border-[#DFD3C3]"
+                  >
+                    Plage de production
                   </Button>
                 </div>
-              )}
-            </div>
+                <Button
+                  onClick={exportProduction}
+                  className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Exporter
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
