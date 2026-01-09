@@ -14,9 +14,27 @@ import { createPageUrl } from "@/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Production() {
+  const [filterMode, setFilterMode] = useState("today"); // today, tomorrow, custom
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterCategoryId, setFilterCategoryId] = useState("all");
+
+  const handleFilterMode = (mode) => {
+    setFilterMode(mode);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (mode === "today") {
+      const todayStr = today.toISOString().split('T')[0];
+      setStartDate(todayStr);
+      setEndDate(todayStr);
+    } else if (mode === "tomorrow") {
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      setStartDate(tomorrowStr);
+      setEndDate(tomorrowStr);
+    }
+  };
 
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
@@ -114,41 +132,81 @@ export default function Production() {
 
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
           <CardContent className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-end">
-              <div>
-                <Label htmlFor="start_date" className="flex items-center gap-2 mb-2 text-sm">
-                  <Calendar className="w-4 h-4" />
-                  Date de début
-                </Label>
-                <Input
-                  id="start_date"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="border-[#DFD3C3]"
-                />
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={filterMode === "today" ? "default" : "outline"}
+                  onClick={() => handleFilterMode("today")}
+                  className={filterMode === "today" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
+                >
+                  Production du jour
+                </Button>
+                <Button
+                  variant={filterMode === "tomorrow" ? "default" : "outline"}
+                  onClick={() => handleFilterMode("tomorrow")}
+                  className={filterMode === "tomorrow" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
+                >
+                  Production demain
+                </Button>
+                <Button
+                  variant={filterMode === "custom" ? "default" : "outline"}
+                  onClick={() => setFilterMode("custom")}
+                  className={filterMode === "custom" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
+                >
+                  Plage de production
+                </Button>
               </div>
-              <div>
-                <Label htmlFor="end_date" className="flex items-center gap-2 mb-2 text-sm">
-                  <Calendar className="w-4 h-4" />
-                  Date de fin
-                </Label>
-                <Input
-                  id="end_date"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  min={startDate}
-                  className="border-[#DFD3C3]"
-                />
-              </div>
-              <Button
-                onClick={exportProduction}
-                className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white w-full"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Exporter
-              </Button>
+
+              {filterMode === "custom" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-end">
+                  <div>
+                    <Label htmlFor="start_date" className="flex items-center gap-2 mb-2 text-sm">
+                      <Calendar className="w-4 h-4" />
+                      Date de début
+                    </Label>
+                    <Input
+                      id="start_date"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="border-[#DFD3C3]"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="end_date" className="flex items-center gap-2 mb-2 text-sm">
+                      <Calendar className="w-4 h-4" />
+                      Date de fin
+                    </Label>
+                    <Input
+                      id="end_date"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      min={startDate}
+                      className="border-[#DFD3C3]"
+                    />
+                  </div>
+                  <Button
+                    onClick={exportProduction}
+                    className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white w-full"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Exporter
+                  </Button>
+                </div>
+              )}
+
+              {filterMode !== "custom" && (
+                <div className="flex justify-end">
+                  <Button
+                    onClick={exportProduction}
+                    className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Exporter
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
