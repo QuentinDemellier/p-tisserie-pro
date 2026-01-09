@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Pencil, Trash2, Image as ImageIcon, CheckSquare } from "lucide-react";
+import { Plus, Pencil, Trash2, Image as ImageIcon, CheckSquare, Pause, Play } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ProductsManagement() {
@@ -72,6 +72,15 @@ export default function ProductsManagement() {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success("Produit supprimé");
     }
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: ({ id, active }) => base44.entities.Product.update(id, { active }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success(variables.active ? "Produit réactivé" : "Produit mis en pause");
+    },
+    onError: () => toast.error("Erreur lors de la mise à jour")
   });
 
   const bulkUpdateProductMutation = useMutation({
@@ -352,6 +361,18 @@ export default function ProductsManagement() {
                         <TableCell><Badge className={product.active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>{product.active !== false ? "Actif" : "Inactif"}</Badge></TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-2 justify-end">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => toggleActiveMutation.mutate({ 
+                                id: product.id, 
+                                active: product.active === false 
+                              })} 
+                              className={product.active === false ? "hover:bg-green-50 text-green-600" : "hover:bg-gray-50 text-gray-600"}
+                              title={product.active === false ? "Réactiver" : "Mettre en pause"}
+                            >
+                              {product.active === false ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                            </Button>
                             <Button variant="ghost" size="icon" onClick={() => handleOpenProductDialog(product)} className="hover:bg-[#E0A890]/10"><Pencil className="w-4 h-4" /></Button>
                             <Button variant="ghost" size="icon" onClick={() => { if (confirm("Supprimer ce produit ?")) deleteProductMutation.mutate(product.id); }} className="hover:bg-red-50 text-red-600"><Trash2 className="w-4 h-4" /></Button>
                           </div>
