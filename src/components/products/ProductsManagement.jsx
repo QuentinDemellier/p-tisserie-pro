@@ -26,7 +26,6 @@ export default function ProductsManagement() {
   const [bulkCategoryId, setBulkCategoryId] = useState("");
   const [productFilterCategory, setProductFilterCategory] = useState("all");
   const [productFilterStatus, setProductFilterStatus] = useState("all");
-  const [productFilterEvent, setProductFilterEvent] = useState("all");
   const [productFormData, setProductFormData] = useState({
     name: "",
     price: "",
@@ -211,19 +210,6 @@ export default function ProductsManagement() {
               <SelectItem value="inactive">Inactif</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={productFilterEvent} onValueChange={setProductFilterEvent}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les types</SelectItem>
-              <SelectItem value="christmas">🎄 Noël</SelectItem>
-              <SelectItem value="valentine">❤️ St-Valentin</SelectItem>
-              <SelectItem value="epiphany">👑 Épiphanie</SelectItem>
-              <SelectItem value="custom">🎉 Personnalisée</SelectItem>
-              <SelectItem value="regular">Classique</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
         <Button onClick={() => handleOpenProductDialog()} className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">
           <Plus className="w-4 h-4 mr-2" />
@@ -293,17 +279,6 @@ export default function ProductsManagement() {
             if (productFilterCategory !== "all" && product.category_id !== productFilterCategory) return false;
             if (productFilterStatus === "active" && product.active === false) return false;
             if (productFilterStatus === "inactive" && product.active !== false) return false;
-            const category = categories.find(c => c.id === product.category_id);
-            const isChristmas = product.is_christmas === true || category?.is_christmas === true;
-            const isValentine = product.is_valentine === true || category?.is_valentine === true;
-            const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
-            const isCustomEvent = product.is_custom_event === true || category?.is_custom_event === true;
-            const isEvent = isChristmas || isValentine || isEpiphany || isCustomEvent;
-            if (productFilterEvent === "christmas" && !isChristmas) return false;
-            if (productFilterEvent === "valentine" && !isValentine) return false;
-            if (productFilterEvent === "epiphany" && !isEpiphany) return false;
-            if (productFilterEvent === "custom" && !isCustomEvent) return false;
-            if (productFilterEvent === "regular" && isEvent) return false;
             return true;
           }).length})</CardTitle>
         </CardHeader>
@@ -339,17 +314,6 @@ export default function ProductsManagement() {
                     if (productFilterCategory !== "all" && product.category_id !== productFilterCategory) return false;
                     if (productFilterStatus === "active" && product.active === false) return false;
                     if (productFilterStatus === "inactive" && product.active !== false) return false;
-                    const category = categories.find(c => c.id === product.category_id);
-                    const isChristmas = product.is_christmas === true || category?.is_christmas === true;
-                    const isValentine = product.is_valentine === true || category?.is_valentine === true;
-                    const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
-                    const isCustomEvent = product.is_custom_event === true || category?.is_custom_event === true;
-                    const isEvent = isChristmas || isValentine || isEpiphany || isCustomEvent;
-                    if (productFilterEvent === "christmas" && !isChristmas) return false;
-                    if (productFilterEvent === "valentine" && !isValentine) return false;
-                    if (productFilterEvent === "epiphany" && !isEpiphany) return false;
-                    if (productFilterEvent === "custom" && !isCustomEvent) return false;
-                    if (productFilterEvent === "regular" && isEvent) return false;
                     return true;
                   }).map(product => {
                     const category = categories.find(c => c.id === product.category_id);
