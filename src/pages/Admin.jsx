@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, Tag, Store, MapPin, Image as ImageIcon, Settings, Users, History, Key, ShoppingBag, CheckSquare } from "lucide-react";
+import ProductsManagement from "../components/products/ProductsManagement";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -21,26 +22,6 @@ import { toast } from "sonner";
 export default function Admin() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("products");
-
-  // Product states
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [productDialogOpen, setProductDialogOpen] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState([]);
-  const [bulkActionDialogOpen, setBulkActionDialogOpen] = useState(false);
-  const [bulkAction, setBulkAction] = useState("");
-  const [bulkCategoryId, setBulkCategoryId] = useState("");
-  const [productFilterCategory, setProductFilterCategory] = useState("all");
-  const [productFilterStatus, setProductFilterStatus] = useState("all");
-  const [productFilterEvent, setProductFilterEvent] = useState("all");
-  const [productFormData, setProductFormData] = useState({
-    name: "",
-    price: "",
-    image_url: "",
-    category_id: "",
-    active: true,
-    current_stock: 0,
-    unlimited_stock: true
-  });
 
   // Category states
   const [editingCategory, setEditingCategory] = useState(null);
@@ -80,11 +61,6 @@ export default function Admin() {
   const [userOrdersDialogOpen, setUserOrdersDialogOpen] = useState(false);
 
   // Queries
-  const { data: products = [], isLoading: loadingProducts } = useQuery({
-    queryKey: ['products'],
-    queryFn: () => base44.entities.Product.list('-created_date')
-  });
-
   const { data: categories = [], isLoading: loadingCategories } = useQuery({
     queryKey: ['categories'],
     queryFn: () => base44.entities.Category.list('order')
@@ -103,50 +79,6 @@ export default function Admin() {
   const { data: orders = [] } = useQuery({
     queryKey: ['orders'],
     queryFn: () => base44.entities.Order.list('-created_date')
-  });
-
-  // Product mutations
-  const createProductMutation = useMutation({
-    mutationFn: (data) => base44.entities.Product.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success("Produit créé");
-      setProductDialogOpen(false);
-    }
-  });
-
-  const updateProductMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Product.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success("Produit mis à jour");
-      setProductDialogOpen(false);
-    }
-  });
-
-  const deleteProductMutation = useMutation({
-    mutationFn: (id) => base44.entities.Product.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success("Produit supprimé");
-    }
-  });
-
-  const bulkUpdateProductMutation = useMutation({
-    mutationFn: async ({ productIds, updates }) => {
-      await Promise.all(
-        productIds.map(id => base44.entities.Product.update(id, updates))
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      setSelectedProducts([]);
-      setBulkActionDialogOpen(false);
-      setBulkAction("");
-      setBulkCategoryId("");
-      toast.success("Produits mis à jour avec succès");
-    },
-    onError: () => toast.error("Erreur lors de la mise à jour groupée")
   });
 
   // Category mutations
@@ -202,92 +134,6 @@ export default function Admin() {
       toast.success("Boutique supprimée");
     }
   });
-
-  // Product handlers
-  const handleOpenProductDialog = (product = null) => {
-    if (product) {
-      setEditingProduct(product);
-      setProductFormData({
-        name: product.name || "",
-        price: product.price || "",
-        image_url: product.image_url || "",
-        category_id: product.category_id || "",
-        active: product.active !== false,
-        current_stock: product.current_stock || 0,
-        unlimited_stock: product.unlimited_stock !== false
-      });
-    } else {
-      setEditingProduct(null);
-      setProductFormData({ name: "", price: "", image_url: "", category_id: "", active: true, current_stock: 0, unlimited_stock: true });
-    }
-    setProductDialogOpen(true);
-  };
-
-  const handleProductSubmit = () => {
-    if (!productFormData.name || !productFormData.price || !productFormData.category_id) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
-      return;
-    }
-    
-    // Check the event type of the selected category
-    const selectedCategory = categories.find(c => c.id === productFormData.category_id);
-
-    const data = { 
-      ...productFormData, 
-      price: parseFloat(productFormData.price),
-      unlimited_stock: productFormData.unlimited_stock,
-      current_stock: parseInt(productFormData.current_stock) || 0,
-      is_christmas: selectedCategory?.is_christmas === true,
-      is_valentine: selectedCategory?.is_valentine === true,
-      is_epiphany: selectedCategory?.is_epiphany === true,
-      is_custom_event: selectedCategory?.is_custom_event === true
-    };
-    
-    if (editingProduct) {
-      updateProductMutation.mutate({ id: editingProduct.id, data });
-    } else {
-      createProductMutation.mutate(data);
-    }
-  };
-
-  const handleSelectAllProducts = (checked) => {
-    if (checked) {
-      setSelectedProducts(products.map(p => p.id));
-    } else {
-      setSelectedProducts([]);
-    }
-  };
-
-  const handleSelectProduct = (productId, checked) => {
-    if (checked) {
-      setSelectedProducts([...selectedProducts, productId]);
-    } else {
-      setSelectedProducts(selectedProducts.filter(id => id !== productId));
-    }
-  };
-
-  const handleBulkAction = () => {
-    if (!bulkAction) {
-      toast.error("Veuillez sélectionner une action");
-      return;
-    }
-
-    if (bulkAction === "change_category" && !bulkCategoryId) {
-      toast.error("Veuillez sélectionner une catégorie");
-      return;
-    }
-
-    let updates = {};
-    if (bulkAction === "activate") {
-      updates = { active: true };
-    } else if (bulkAction === "deactivate") {
-      updates = { active: false };
-    } else if (bulkAction === "change_category") {
-      updates = { category_id: bulkCategoryId };
-    }
-
-    bulkUpdateProductMutation.mutate({ productIds: selectedProducts, updates });
-  };
 
   // Category handlers
   const handleOpenCategoryDialog = (category = null) => {
@@ -445,246 +291,7 @@ export default function Admin() {
 
           {/* PRODUCTS TAB */}
           <TabsContent value="products">
-            <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-              <div className="flex flex-wrap gap-2">
-                <Select value={productFilterCategory} onValueChange={setProductFilterCategory}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Catégorie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Toutes les catégories</SelectItem>
-                    {categories.map(cat => {
-                      let emoji = '';
-                      if (cat.is_christmas === true) emoji = '🎄 ';
-                      if (cat.is_valentine === true) emoji = '❤️ ';
-                      if (cat.is_epiphany === true) emoji = '👑 ';
-                      if (cat.is_custom_event === true) emoji = (cat.event_icon || '🎉') + ' ';
-                      return (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {emoji}{cat.name}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                <Select value={productFilterStatus} onValueChange={setProductFilterStatus}>
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les statuts</SelectItem>
-                    <SelectItem value="active">Actif</SelectItem>
-                    <SelectItem value="inactive">Inactif</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={productFilterEvent} onValueChange={setProductFilterEvent}>
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les types</SelectItem>
-                    <SelectItem value="christmas">🎄 Noël</SelectItem>
-                    <SelectItem value="valentine">❤️ St-Valentin</SelectItem>
-                    <SelectItem value="epiphany">👑 Épiphanie</SelectItem>
-                    <SelectItem value="custom">🎉 Personnalisée</SelectItem>
-                    <SelectItem value="regular">Classique</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={() => handleOpenProductDialog()} className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Nouveau produit
-              </Button>
-            </div>
-
-            {selectedProducts.length > 0 && (
-              <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-r from-[#E0A890] to-[#C98F75] text-white mb-4">
-                <CardContent className="p-4">
-                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <CheckSquare className="w-5 h-5" />
-                      <span className="font-semibold">{selectedProducts.length} produit(s) sélectionné(s)</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2 flex-1">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => {
-                          setBulkAction("activate");
-                          setBulkActionDialogOpen(true);
-                        }}
-                        className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                      >
-                        Mettre actif
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => {
-                          setBulkAction("deactivate");
-                          setBulkActionDialogOpen(true);
-                        }}
-                        className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                      >
-                        Mettre en pause
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => {
-                          setBulkAction("change_category");
-                          setBulkActionDialogOpen(true);
-                        }}
-                        className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                      >
-                        Changer la catégorie
-                      </Button>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedProducts([])}
-                      className="hover:bg-white/20 text-white"
-                    >
-                      Annuler
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90">
-              <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
-                <CardTitle>Liste des produits ({products.filter(product => {
-                  if (productFilterCategory !== "all" && product.category_id !== productFilterCategory) return false;
-                  if (productFilterStatus === "active" && product.active === false) return false;
-                  if (productFilterStatus === "inactive" && product.active !== false) return false;
-                  const category = categories.find(c => c.id === product.category_id);
-                  const isChristmas = product.is_christmas === true || category?.is_christmas === true;
-                  const isValentine = product.is_valentine === true || category?.is_valentine === true;
-                  const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
-                  const isCustomEvent = product.is_custom_event === true || category?.is_custom_event === true;
-                  const isEvent = isChristmas || isValentine || isEpiphany || isCustomEvent;
-                  if (productFilterEvent === "christmas" && !isChristmas) return false;
-                  if (productFilterEvent === "valentine" && !isValentine) return false;
-                  if (productFilterEvent === "epiphany" && !isEpiphany) return false;
-                  if (productFilterEvent === "custom" && !isCustomEvent) return false;
-                  if (productFilterEvent === "regular" && isEvent) return false;
-                  return true;
-                }).length})</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-[#F8EDE3]/50">
-                        <TableHead className="w-12">
-                          <Checkbox
-                            checked={selectedProducts.length === products.length && products.length > 0}
-                            onCheckedChange={handleSelectAllProducts}
-                          />
-                        </TableHead>
-                        <TableHead>Image</TableHead>
-                        <TableHead>Nom</TableHead>
-                        <TableHead>Catégorie</TableHead>
-                        <TableHead>Prix</TableHead>
-                        <TableHead>Stock</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {loadingProducts ? (
-                        Array(5).fill(0).map((_, i) => (
-                          <TableRow key={i}><TableCell colSpan={7}><div className="h-12 bg-[#DFD3C3]/20 animate-pulse rounded" /></TableCell></TableRow>
-                        ))
-                      ) : products.length === 0 ? (
-                        <TableRow><TableCell colSpan={8} className="text-center py-12 text-gray-500">Aucun produit</TableCell></TableRow>
-                      ) : (
-                        products.filter(product => {
-                          // Filter by category
-                          if (productFilterCategory !== "all" && product.category_id !== productFilterCategory) {
-                            return false;
-                          }
-                          // Filter by status
-                          if (productFilterStatus === "active" && product.active === false) {
-                            return false;
-                          }
-                          if (productFilterStatus === "inactive" && product.active !== false) {
-                            return false;
-                          }
-                          // Filter by event type
-                          const category = categories.find(c => c.id === product.category_id);
-                          const isChristmas = product.is_christmas === true || category?.is_christmas === true;
-                          const isValentine = product.is_valentine === true || category?.is_valentine === true;
-                          const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
-                          const isCustomEvent = product.is_custom_event === true || category?.is_custom_event === true;
-                          const isEvent = isChristmas || isValentine || isEpiphany || isCustomEvent;
-                          if (productFilterEvent === "christmas" && !isChristmas) {
-                            return false;
-                          }
-                          if (productFilterEvent === "valentine" && !isValentine) {
-                            return false;
-                          }
-                          if (productFilterEvent === "epiphany" && !isEpiphany) {
-                            return false;
-                          }
-                          if (productFilterEvent === "custom" && !isCustomEvent) {
-                            return false;
-                          }
-                          if (productFilterEvent === "regular" && isEvent) {
-                            return false;
-                          }
-                          return true;
-                        }).map(product => {
-                          const category = categories.find(c => c.id === product.category_id);
-                          const isChristmas = product.is_christmas === true || category?.is_christmas === true;
-                          const isValentine = product.is_valentine === true || category?.is_valentine === true;
-                          const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
-                          const isCustomEvent = product.is_custom_event === true || category?.is_custom_event === true;
-                          let eventEmoji = '';
-                          if (isChristmas) eventEmoji = '🎄 ';
-                          if (isValentine) eventEmoji = '❤️ ';
-                          if (isEpiphany) eventEmoji = '👑 ';
-                          if (isCustomEvent) eventEmoji = (category?.event_icon || '🎉') + ' ';
-                          return (
-                            <TableRow key={product.id} className="hover:bg-[#F8EDE3]/20">
-                              <TableCell>
-                                <Checkbox
-                                  checked={selectedProducts.includes(product.id)}
-                                  onCheckedChange={(checked) => handleSelectProduct(product.id, checked)}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#F8EDE3] to-[#DFD3C3] overflow-hidden flex items-center justify-center">
-                                  {product.image_url ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" /> : <span className="text-2xl">🧁</span>}
-                                </div>
-                              </TableCell>
-                              <TableCell className="font-semibold">{eventEmoji}{product.name}</TableCell>
-                              <TableCell><Badge variant="outline" className="border-[#E0A890] text-[#C98F75]">{category?.name || '-'}</Badge></TableCell>
-                              <TableCell className="font-bold text-[#C98F75]">{product.price?.toFixed(2)} €</TableCell>
-                              <TableCell>
-                                {product.unlimited_stock !== false ? (
-                                  <Badge variant="outline" className="border-green-300 text-green-700">Illimité</Badge>
-                                ) : (
-                                  <span className="font-semibold">{product.current_stock || 0}</span>
-                                )}
-                              </TableCell>
-                              <TableCell><Badge className={product.active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>{product.active !== false ? "Actif" : "Inactif"}</Badge></TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex gap-2 justify-end">
-                                  <Button variant="ghost" size="icon" onClick={() => handleOpenProductDialog(product)} className="hover:bg-[#E0A890]/10"><Pencil className="w-4 h-4" /></Button>
-                                  <Button variant="ghost" size="icon" onClick={() => { if (confirm("Supprimer ce produit ?")) deleteProductMutation.mutate(product.id); }} className="hover:bg-red-50 text-red-600"><Trash2 className="w-4 h-4" /></Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+            <ProductsManagement />
           </TabsContent>
 
           {/* CATEGORIES TAB */}
