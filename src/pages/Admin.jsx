@@ -12,9 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Tag, Store, MapPin, Image as ImageIcon, Settings, Users, History, Key, ShoppingBag, CheckSquare } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, Store, MapPin, Settings, Users, History, ShoppingBag } from "lucide-react";
 import ProductsManagement from "../components/products/ProductsManagement";
-import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -343,7 +342,6 @@ export default function Admin() {
                           <TableHead>Nom</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead>Type</TableHead>
-                          <TableHead>Produits</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -374,11 +372,6 @@ export default function Admin() {
                             <TableCell className="text-gray-600">{category.description || '-'}</TableCell>
                             <TableCell>
                               {eventBadge}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="border-[#E0A890] text-[#C98F75]">
-                                -
-                              </Badge>
                             </TableCell>
                             <TableCell><Badge className={category.active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>{category.active !== false ? "Active" : "Inactive"}</Badge></TableCell>
                             <TableCell className="text-right">
@@ -548,8 +541,6 @@ export default function Admin() {
             </Card>
           </TabsContent>
         </Tabs>
-
-
 
         {/* Category Dialog */}
         <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
@@ -953,8 +944,6 @@ export default function Admin() {
             )}
           </DialogContent>
         </Dialog>
-
-
       </div>
     </div>
   );

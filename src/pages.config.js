@@ -1,4 +1,3 @@
-import Admin from './pages/Admin';
 import AdminHome from './pages/AdminHome';
 import CatalogProducts from './pages/CatalogProducts';
 import DeliveryPrep from './pages/DeliveryPrep';
@@ -10,11 +9,11 @@ import Production from './pages/Production';
 import ProductionHome from './pages/ProductionHome';
 import Reports from './pages/Reports';
 import VendeurHome from './pages/VendeurHome';
+import Admin from './pages/Admin';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Admin": Admin,
     "AdminHome": AdminHome,
     "CatalogProducts": CatalogProducts,
     "DeliveryPrep": DeliveryPrep,
@@ -26,6 +25,7 @@ export const PAGES = {
     "ProductionHome": ProductionHome,
     "Reports": Reports,
     "VendeurHome": VendeurHome,
+    "Admin": Admin,
 }
 
 export const pagesConfig = {

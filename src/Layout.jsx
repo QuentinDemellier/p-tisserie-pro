@@ -119,8 +119,9 @@ export default function Layout({ children, currentPageName }) {
       { title: "Catalogue produits", url: createPageUrl("CatalogProducts"), icon: ShoppingCart }
     ],
     admin: [
+      { title: "Accueil", url: createPageUrl("AdminHome"), icon: Cake },
       { title: "Administration", url: createPageUrl("Admin"), icon: Settings },
-      { title: "Rapports", url: createPageUrl("Reports"), icon: Factory }
+      { title: "Rapports", url: createPageUrl("Reports"), icon: TrendingUp }
     ]
   };
 
