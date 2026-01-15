@@ -176,19 +176,7 @@ export default function Admin() {
                            data.is_custom_event !== editingCategory.is_custom_event;
 
       if (eventChanged) {
-        const categoryProducts = products.filter(p => p.category_id === editingCategory.id);
-        await Promise.all(
-          categoryProducts.map(product => 
-            base44.entities.Product.update(product.id, { 
-              is_christmas: data.is_christmas,
-              is_valentine: data.is_valentine,
-              is_epiphany: data.is_epiphany,
-              is_custom_event: data.is_custom_event
-            })
-          )
-        );
         queryClient.invalidateQueries({ queryKey: ['products'] });
-        toast.success(`${categoryProducts.length} produit(s) mis à jour`);
       }
     } else {
       createCategoryMutation.mutate(data);
@@ -389,7 +377,7 @@ export default function Admin() {
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline" className="border-[#E0A890] text-[#C98F75]">
-                                {products.filter(p => p.category_id === category.id).length}
+                                -
                               </Badge>
                             </TableCell>
                             <TableCell><Badge className={category.active !== false ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>{category.active !== false ? "Active" : "Inactive"}</Badge></TableCell>
@@ -561,72 +549,7 @@ export default function Admin() {
           </TabsContent>
         </Tabs>
 
-        {/* Product Dialog */}
-        <Dialog open={productDialogOpen} onOpenChange={setProductDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{editingProduct ? "Modifier le produit" : "Nouveau produit"}</DialogTitle></DialogHeader>
-            <div className="space-y-4 py-4">
-              <div><Label>Nom *</Label><Input value={productFormData.name} onChange={(e) => setProductFormData({...productFormData, name: e.target.value})} className="mt-2" /></div>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div><Label>Prix (€) *</Label><Input type="number" step="0.01" min="0" value={productFormData.price} onChange={(e) => setProductFormData({...productFormData, price: e.target.value})} className="mt-2" /></div>
-                <div><Label>Catégorie *</Label><Select value={productFormData.category_id} onValueChange={(value) => setProductFormData({...productFormData, category_id: value})}><SelectTrigger className="mt-2"><SelectValue /></SelectTrigger><SelectContent>{categories.map(cat => {
-                  let emoji = '';
-                  if (cat.is_christmas === true) emoji = '🎄 ';
-                  if (cat.is_valentine === true) emoji = '❤️ ';
-                  if (cat.is_epiphany === true) emoji = '👑 ';
-                  if (cat.is_custom_event === true) emoji = (cat.event_icon || '🎉') + ' ';
-                  return (<SelectItem key={cat.id} value={cat.id}>{emoji}{cat.name}</SelectItem>);
-                })}</SelectContent></Select></div>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 bg-[#F8EDE3]/30 rounded-lg">
-                  <div>
-                    <Label>Stock illimité</Label>
-                    <p className="text-sm text-gray-600">Aucun suivi de stock</p>
-                  </div>
-                  <Switch 
-                    checked={productFormData.unlimited_stock} 
-                    onCheckedChange={(checked) => setProductFormData({
-                      ...productFormData, 
-                      unlimited_stock: checked,
-                      current_stock: checked ? 0 : productFormData.current_stock
-                    })} 
-                  />
-                </div>
-                
-                {!productFormData.unlimited_stock && (
-                  <div>
-                    <Label>Stock disponible *</Label>
-                    <Input 
-                      type="number" 
-                      min="0" 
-                      value={productFormData.current_stock} 
-                      onChange={(e) => setProductFormData({...productFormData, current_stock: e.target.value})} 
-                      className="mt-2" 
-                      placeholder="Quantité en stock"
-                    />
-                  </div>
-                )}
-              </div>
-              <div>
-                <Label>Photo</Label>
-                <div className="flex gap-2 mt-2">
-                  <Input value={productFormData.image_url} onChange={(e) => setProductFormData({...productFormData, image_url: e.target.value})} placeholder="https://..." />
-                  <Button type="button" variant="outline" onClick={() => { const urls = ["https://images.unsplash.com/photo-1578985545062-69928b1d9587", "https://images.unsplash.com/photo-1586985289688-ca3cf47d3e6e"]; setProductFormData({...productFormData, image_url: urls[Math.floor(Math.random() * urls.length)]}); }}><ImageIcon className="w-4 h-4" /></Button>
-                </div>
-                {productFormData.image_url && <img src={productFormData.image_url} alt="Preview" className="mt-3 w-full h-48 object-cover rounded-lg" />}
-              </div>
-              <div className="flex items-center justify-between p-4 bg-[#F8EDE3]/30 rounded-lg">
-                <div><Label>Produit actif</Label><p className="text-sm text-gray-600">Visible dans le catalogue</p></div>
-                <Switch checked={productFormData.active} onCheckedChange={(checked) => setProductFormData({...productFormData, active: checked})} />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <Button variant="outline" onClick={() => setProductDialogOpen(false)} className="flex-1">Annuler</Button>
-                <Button onClick={handleProductSubmit} className="flex-1 bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">{editingProduct ? "Mettre à jour" : "Créer"}</Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+
 
         {/* Category Dialog */}
         <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
@@ -1031,76 +954,7 @@ export default function Admin() {
           </DialogContent>
         </Dialog>
 
-        {/* Bulk Action Dialog */}
-        <Dialog open={bulkActionDialogOpen} onOpenChange={setBulkActionDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Action groupée</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <p className="text-sm text-gray-600">
-                Vous allez modifier {selectedProducts.length} produit(s)
-              </p>
-              
-              {bulkAction === "activate" && (
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="font-semibold text-green-800">Mettre les produits actifs</p>
-                  <p className="text-sm text-green-600 mt-1">
-                    Les produits seront visibles dans le catalogue
-                  </p>
-                </div>
-              )}
 
-              {bulkAction === "deactivate" && (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="font-semibold text-gray-800">Mettre les produits en pause</p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Les produits seront masqués du catalogue
-                  </p>
-                </div>
-              )}
-
-              {bulkAction === "change_category" && (
-                <div>
-                  <Label htmlFor="bulk_category">Nouvelle catégorie</Label>
-                  <Select value={bulkCategoryId} onValueChange={setBulkCategoryId}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Sélectionnez une catégorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(cat => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setBulkActionDialogOpen(false);
-                    setBulkAction("");
-                    setBulkCategoryId("");
-                  }}
-                  className="flex-1"
-                >
-                  Annuler
-                </Button>
-                <Button
-                  onClick={handleBulkAction}
-                  disabled={bulkUpdateProductMutation.isPending}
-                  className="flex-1 bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
-                >
-                  {bulkUpdateProductMutation.isPending ? "En cours..." : "Confirmer"}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
