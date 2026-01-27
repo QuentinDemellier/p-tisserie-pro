@@ -25,8 +25,26 @@ export default function VendeurHome() {
   const [optimisticStatus, setOptimisticStatus] = useState({});
   const [editingOrder, setEditingOrder] = useState(null);
   const [editingOrderLines, setEditingOrderLines] = useState([]);
-  const todayDate = new Date();
-  const today = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+  const [filterMode, setFilterMode] = useState("today");
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const handleFilterMode = (mode) => {
+    setFilterMode(mode);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (mode === "today") {
+      const todayStr = today.toISOString().split('T')[0];
+      setStartDate(todayStr);
+      setEndDate(todayStr);
+    } else if (mode === "tomorrow") {
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      setStartDate(tomorrowStr);
+      setEndDate(tomorrowStr);
+    }
+  };
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -111,15 +129,14 @@ export default function VendeurHome() {
   const userShopId = user?.assigned_shop_id;
   const userShop = shops.find(s => s.id === userShopId);
 
-  const todayOrders = orders.filter(order => 
-    order.pickup_date === today && 
+  const filteredOrders = orders.filter(order => 
+    order.pickup_date >= startDate && 
+    order.pickup_date <= endDate &&
     order.shop_id === userShopId &&
     order.status !== 'Annulée'
   );
 
-  const completedToday = orders.filter(order => 
-    order.pickup_date === today && 
-    order.shop_id === userShopId &&
+  const completedCount = filteredOrders.filter(order => 
     order.status === 'Récupérée'
   ).length;
 
@@ -163,20 +180,105 @@ export default function VendeurHome() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
             <ShoppingCart className="w-8 h-8 text-[#C98F75]" />
-            Tableau de bord vendeur
+            Commandes à retirer
           </h1>
           {userShop && (
             <p className="text-gray-600 text-lg">Boutique : <span className="font-semibold">{userShop.name}</span></p>
           )}
         </div>
 
+        <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
+          <CardContent className="p-4 sm:p-6">
+            {filterMode === "custom" ? (
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleFilterMode("today")}
+                    className="border-[#DFD3C3]"
+                  >
+                    Aujourd'hui
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleFilterMode("tomorrow")}
+                    className="border-[#DFD3C3]"
+                  >
+                    Demain
+                  </Button>
+                  <Button
+                    variant="default"
+                    className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
+                  >
+                    Plage de dates
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="start_date" className="flex items-center gap-2 mb-2 text-sm">
+                      <Calendar className="w-4 h-4" />
+                      Date de début
+                    </Label>
+                    <Input
+                      id="start_date"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="border-[#DFD3C3]"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="end_date" className="flex items-center gap-2 mb-2 text-sm">
+                      <Calendar className="w-4 h-4" />
+                      Date de fin
+                    </Label>
+                    <Input
+                      id="end_date"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      min={startDate}
+                      className="border-[#DFD3C3]"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={filterMode === "today" ? "default" : "outline"}
+                  onClick={() => handleFilterMode("today")}
+                  className={filterMode === "today" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
+                >
+                  Aujourd'hui
+                </Button>
+                <Button
+                  variant={filterMode === "tomorrow" ? "default" : "outline"}
+                  onClick={() => handleFilterMode("tomorrow")}
+                  className={filterMode === "tomorrow" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
+                >
+                  Demain
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setFilterMode("custom")}
+                  className="border-[#DFD3C3]"
+                >
+                  Plage de dates
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-blue-50 to-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">À retirer aujourd'hui</p>
-                  <p className="text-4xl font-bold text-blue-600">{todayOrders.length}</p>
+                  <p className="text-sm text-gray-600 mb-1">Commandes à retirer</p>
+                  <p className="text-4xl font-bold text-blue-600">{filteredOrders.length}</p>
                 </div>
                 <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
                   <Calendar className="w-8 h-8 text-blue-600" />
@@ -189,8 +291,8 @@ export default function VendeurHome() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Retirées aujourd'hui</p>
-                  <p className="text-4xl font-bold text-green-600">{completedToday}</p>
+                  <p className="text-sm text-gray-600 mb-1">Déjà récupérées</p>
+                  <p className="text-4xl font-bold text-green-600">{completedCount}</p>
                 </div>
                 <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
                   <CheckCircle2 className="w-8 h-8 text-green-600" />
@@ -198,26 +300,24 @@ export default function VendeurHome() {
               </div>
             </CardContent>
           </Card>
-
-
         </div>
 
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm">
           <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
             <CardTitle className="flex items-center gap-2">
               <Package className="w-5 h-5 text-[#C98F75]" />
-              Commandes à retirer aujourd'hui
+              Liste des commandes
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            {todayOrders.length === 0 ? (
+            {filteredOrders.length === 0 ? (
               <div className="text-center py-12">
                 <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Aucune commande à retirer aujourd'hui</p>
+                <p className="text-gray-500 text-lg">Aucune commande sur cette période</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {todayOrders.map(order => {
+                {filteredOrders.map(order => {
                   const currentStatus = optimisticStatus[order.id] !== undefined ? optimisticStatus[order.id] : order.status;
                   const isCompleted = currentStatus === 'Récupérée';
                   return (
