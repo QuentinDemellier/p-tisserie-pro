@@ -323,7 +323,7 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
             </div>
 
             <div>
-              <Label htmlFor="customer_email">Email *</Label>
+              <Label htmlFor="customer_email">Email</Label>
               <div className="relative mt-2">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -448,8 +448,42 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
               Annuler
             </Button>
             <Button
-              onClick={() => updateOrderMutation.mutate()}
-              disabled={updateOrderMutation.isPending || lines.length === 0}
+              onClick={() => {
+                // Validation des champs obligatoires
+                if (!orderData.shop_id) {
+                  toast.error("Veuillez sélectionner une boutique de retrait");
+                  return;
+                }
+                if (!orderData.pickup_date) {
+                  toast.error("Veuillez sélectionner une date de retrait");
+                  return;
+                }
+                if (!orderData.customer_firstname?.trim()) {
+                  toast.error("Le prénom du client est obligatoire");
+                  return;
+                }
+                if (!orderData.customer_name?.trim()) {
+                  toast.error("Le nom du client est obligatoire");
+                  return;
+                }
+                if (!orderData.customer_phone?.trim()) {
+                  toast.error("Le téléphone du client est obligatoire");
+                  return;
+                }
+                if (lines.length === 0) {
+                  toast.error("La commande doit contenir au moins un produit");
+                  return;
+                }
+                // Vérifier que tous les produits sont sélectionnés
+                const hasInvalidLine = lines.some(line => !line.product_id || line.quantity < 1);
+                if (hasInvalidLine) {
+                  toast.error("Tous les produits doivent être sélectionnés avec une quantité valide");
+                  return;
+                }
+                
+                updateOrderMutation.mutate();
+              }}
+              disabled={updateOrderMutation.isPending}
               className="flex-1 bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
             >
               {updateOrderMutation.isPending ? "Enregistrement..." : "Enregistrer les modifications"}
