@@ -86,12 +86,8 @@ export default function VendeurHome() {
     setEditingOrderLines(lines);
   };
 
-  const userShopId = user?.assigned_shop_id;
-  const userShop = shops.find(s => s.id === userShopId);
-
   const filteredOrders = orders.filter(order => 
     order.pickup_date === selectedDate &&
-    order.shop_id === userShopId &&
     order.status !== 'Annulée'
   );
 
@@ -116,9 +112,7 @@ export default function VendeurHome() {
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
             Commandes à retirer
           </h1>
-          {userShop && (
-            <p className="text-gray-600 text-lg">Boutique : <span className="font-semibold">{userShop.name}</span></p>
-          )}
+          <p className="text-gray-600 text-lg">Toutes les boutiques</p>
         </div>
 
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
@@ -205,6 +199,7 @@ export default function VendeurHome() {
               <div className="space-y-3">
                 {pendingOrders.map(order => {
                   const lines = getOrderProducts(order.id);
+                  const orderShop = shops.find(s => s.id === order.shop_id);
                   return (
                     <Card key={order.id} className="border-[#DFD3C3]/30 hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
@@ -214,6 +209,11 @@ export default function VendeurHome() {
                               <span className="font-mono font-semibold text-lg text-[#C98F75]">
                                 #{order.order_number}
                               </span>
+                              {orderShop && (
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  {orderShop.name}
+                                </Badge>
+                              )}
                               {order.status === 'Enregistrée (modifiée)' && (
                                 <Badge className="bg-orange-100 text-orange-800">Modifiée</Badge>
                               )}
