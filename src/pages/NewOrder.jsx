@@ -86,12 +86,13 @@ export default function NewOrder() {
         )
       );
 
-      const shop = shops.find((s) => s.id === data.shop_id);
-
-      await base44.integrations.Core.SendEmail({
-        to: data.customer_email,
-        subject: `Confirmation de commande ${orderNumber}`,
-        body: `
+      if (data.customer_email) {
+        const shop = shops.find((s) => s.id === data.shop_id);
+        try {
+          await base44.integrations.Core.SendEmail({
+            to: data.customer_email,
+            subject: `Confirmation de commande ${orderNumber}`,
+            body: `
 Bonjour ${data.customer_firstname} ${data.customer_name},
 
 Votre commande a bien été enregistrée !
@@ -114,8 +115,12 @@ ${cart
 Merci de votre confiance !
 
 L'équipe de la Pâtisserie
-        `,
-      });
+            `,
+          });
+        } catch (e) {
+          console.error("Erreur envoi email:", e);
+        }
+      }
 
       return { order, orderNumber };
     },
@@ -145,7 +150,11 @@ L'équipe de la Pâtisserie
         setEventMode(null);
         },
         onError: (error) => {
-      toast.error("Erreur lors de la création de la commande");
+      setConfirmDialogOpen(false);
+      toast.error("Erreur lors de la création de la commande", {
+        description: error?.message || "Veuillez réessayer",
+        duration: 5000,
+      });
       console.error(error);
     },
   });
