@@ -319,18 +319,19 @@ export default function VendeurHome() {
                               <p className="text-sm text-gray-600">{order.total_amount.toFixed(2)} €</p>
                             </div>
                           </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewDetails(order)}
-                          className="text-gray-600"
-                        >
-                          Voir
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewDetails(order)}
+                            className="text-gray-600"
+                          >
+                            Voir
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
