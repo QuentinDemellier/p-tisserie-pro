@@ -110,137 +110,172 @@ export default function VendeurHome() {
   };
 
   return (
-    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">
+    <div className="p-6 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
             Commandes à retirer
           </h1>
           {userShop && (
-            <p className="text-gray-600">{userShop.name}</p>
+            <p className="text-gray-600 text-lg">Boutique : <span className="font-semibold">{userShop.name}</span></p>
           )}
         </div>
 
-        <div className="mb-6 flex flex-wrap gap-2">
-          <Button
-            variant={selectedDate === new Date().toISOString().split('T')[0] ? "default" : "outline"}
-            onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-            className={selectedDate === new Date().toISOString().split('T')[0] ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] text-white" : ""}
-          >
-            Aujourd'hui
-          </Button>
-          <Button
-            variant={selectedDate === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0] ? "default" : "outline"}
-            onClick={() => {
-              const tomorrow = new Date();
-              tomorrow.setDate(tomorrow.getDate() + 1);
-              setSelectedDate(tomorrow.toISOString().split('T')[0]);
-            }}
-            className={selectedDate === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0] ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] text-white" : ""}
-          >
-            Demain
-          </Button>
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-auto"
-          />
-        </div>
+        <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedDate === new Date().toISOString().split('T')[0] ? "default" : "outline"}
+                onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                className={selectedDate === new Date().toISOString().split('T')[0] ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
+              >
+                Aujourd'hui
+              </Button>
+              <Button
+                variant={selectedDate === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0] ? "default" : "outline"}
+                onClick={() => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  setSelectedDate(tomorrow.toISOString().split('T')[0]);
+                }}
+                className={selectedDate === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0] ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
+              >
+                Demain
+              </Button>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-auto border-[#DFD3C3]"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="grid md:grid-cols-3 gap-4 mb-6">
-          <Card className="bg-white border-[#DFD3C3]/30">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600">Total</p>
-              <p className="text-3xl font-bold text-gray-800">{filteredOrders.length}</p>
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-gray-50 to-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Total</p>
+                  <p className="text-4xl font-bold text-gray-800">{filteredOrders.length}</p>
+                </div>
+                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center">
+                  <Package className="w-8 h-8 text-gray-600" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-          <Card className="bg-orange-50 border-orange-200">
-            <CardContent className="p-4">
-              <p className="text-sm text-orange-700">En attente</p>
-              <p className="text-3xl font-bold text-orange-600">{pendingOrders.length}</p>
+
+          <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-orange-50 to-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">En attente</p>
+                  <p className="text-4xl font-bold text-orange-600">{pendingOrders.length}</p>
+                </div>
+                <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center">
+                  <Package className="w-8 h-8 text-orange-600" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-          <Card className="bg-green-50 border-green-200">
-            <CardContent className="p-4">
-              <p className="text-sm text-green-700">Récupérées</p>
-              <p className="text-3xl font-bold text-green-600">{completedOrders.length}</p>
+
+          <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-green-50 to-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Récupérées</p>
+                  <p className="text-4xl font-bold text-green-600">{completedOrders.length}</p>
+                </div>
+                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
 
         {pendingOrders.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-3 text-orange-700">En attente ({pendingOrders.length})</h2>
-            <div className="space-y-3">
-              {pendingOrders.map(order => {
-                const lines = getOrderProducts(order.id);
-                return (
-                  <Card key={order.id} className="border-orange-200 bg-white hover:shadow-lg transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xl font-bold text-[#C98F75]">#{order.order_number}</span>
-                            {order.status === 'Enregistrée (modifiée)' && (
-                              <Badge className="bg-orange-100 text-orange-800">Modifiée</Badge>
-                            )}
+          <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-4 text-orange-700">
+                En attente ({pendingOrders.length})
+              </h2>
+              <div className="space-y-3">
+                {pendingOrders.map(order => {
+                  const lines = getOrderProducts(order.id);
+                  return (
+                    <Card key={order.id} className="border-[#DFD3C3]/30 hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0 w-full">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <span className="font-mono font-semibold text-lg text-[#C98F75]">
+                                #{order.order_number}
+                              </span>
+                              {order.status === 'Enregistrée (modifiée)' && (
+                                <Badge className="bg-orange-100 text-orange-800">Modifiée</Badge>
+                              )}
+                            </div>
+                            <p className="text-lg font-semibold mb-1">
+                              {order.customer_firstname} {order.customer_name}
+                            </p>
+                            <p className="text-sm text-gray-600 flex items-center gap-1 mb-3">
+                              <Phone className="w-4 h-4" />
+                              {order.customer_phone}
+                            </p>
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {lines.map(line => (
+                                <Badge key={line.id} variant="outline" className="text-xs font-normal">
+                                  {line.quantity}x {line.product_name}
+                                </Badge>
+                              ))}
+                            </div>
+                            <p className="text-2xl font-bold text-[#C98F75]">
+                              {order.total_amount.toFixed(2)} €
+                            </p>
                           </div>
-                          <p className="text-lg font-medium mb-1">
-                            {order.customer_firstname} {order.customer_name}
-                          </p>
-                          <p className="text-sm text-gray-600 flex items-center gap-1 mb-3">
-                            <Phone className="w-4 h-4" />
-                            {order.customer_phone}
-                          </p>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {lines.map(line => (
-                              <Badge key={line.id} variant="outline" className="text-xs">
-                                {line.quantity}x {line.product_name}
-                              </Badge>
-                            ))}
+                          <div className="flex flex-col gap-2 w-full sm:w-auto">
+                            <Button
+                              size="lg"
+                              onClick={() => markAsPickedUp(order)}
+                              className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+                            >
+                              <CheckCircle2 className="w-5 h-5 mr-2" />
+                              Récupérée
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewDetails(order)}
+                              className="border-[#DFD3C3] w-full sm:w-auto"
+                            >
+                              Détails
+                            </Button>
                           </div>
-                          <p className="text-2xl font-bold text-[#C98F75]">
-                            {order.total_amount.toFixed(2)} €
-                          </p>
                         </div>
-                        <div className="flex flex-col gap-2">
-                          <Button
-                            size="lg"
-                            onClick={() => markAsPickedUp(order)}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            <CheckCircle2 className="w-5 h-5 mr-2" />
-                            Récupérée
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewDetails(order)}
-                          >
-                            Détails
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {completedOrders.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold mb-3 text-green-700">Récupérées ({completedOrders.length})</h2>
-            <div className="space-y-2">
-              {completedOrders.map(order => {
-                const lines = getOrderProducts(order.id);
-                return (
-                  <Card key={order.id} className="border-green-200 bg-green-50/50 opacity-70">
+          <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-4 text-green-700">
+                Récupérées ({completedOrders.length})
+              </h2>
+              <div className="space-y-2">
+                {completedOrders.map(order => (
+                  <Card key={order.id} className="border-[#DFD3C3]/30 bg-green-50/30">
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1">
                           <CheckCircle2 className="w-5 h-5 text-green-600" />
                           <div>
                             <p className="font-semibold text-gray-700">
@@ -253,20 +288,21 @@ export default function VendeurHome() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleViewDetails(order)}
+                          className="text-gray-600"
                         >
                           Voir
                         </Button>
                       </div>
                     </CardContent>
                   </Card>
-                );
-              })}
-            </div>
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {filteredOrders.length === 0 && (
-          <Card className="border-[#DFD3C3]/30">
+          <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm">
             <CardContent className="p-12 text-center">
               <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg">Aucune commande pour cette date</p>
