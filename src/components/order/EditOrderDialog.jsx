@@ -21,7 +21,8 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
     customer_name: "",
     customer_firstname: "",
     customer_phone: "",
-    customer_email: ""
+    customer_email: "",
+    status: "Enregistrée"
   });
   const [lines, setLines] = useState([]);
   const [errors, setErrors] = useState({});
@@ -48,7 +49,8 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
         customer_name: order.customer_name,
         customer_firstname: order.customer_firstname,
         customer_phone: order.customer_phone,
-        customer_email: order.customer_email
+        customer_email: order.customer_email,
+        status: order.status
       });
       setLines(orderLines.map(line => ({
         ...line,
@@ -159,10 +161,13 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
       }
 
       // Mettre à jour la commande
+      const statusChanged = orderData.status !== order.status;
+      const newStatus = modifications.length > 0 && orderData.status === "Enregistrée" ? "Enregistrée (modifiée)" : orderData.status;
+      
       await base44.entities.Order.update(order.id, {
         ...orderData,
         total_amount: newTotal,
-        status: "Enregistrée (modifiée)"
+        status: newStatus
       });
 
       // Supprimer les anciennes lignes
@@ -194,13 +199,16 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
         });
       }
 
-      await base44.entities.OrderStatusHistory.create({
-        order_id: order.id,
-        old_status: order.status,
-        new_status: "Enregistrée (modifiée)",
-        changed_by: user?.email || "inconnu",
-        comment: comment || "Commande modifiée"
-      });
+      // Enregistrer l'historique de statut si changé
+      if (statusChanged || modifications.length > 0) {
+        await base44.entities.OrderStatusHistory.create({
+          order_id: order.id,
+          old_status: order.status,
+          new_status: newStatus,
+          changed_by: user?.email || "inconnu",
+          comment: comment || (statusChanged ? "Statut modifié" : "Commande modifiée")
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -355,6 +363,25 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
                   className="pl-10 border-[#DFD3C3]"
                 />
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="status">Statut de la commande</Label>
+              <Select 
+                value={orderData.status} 
+                onValueChange={(value) => setOrderData({...orderData, status: value})}
+              >
+                <SelectTrigger className="mt-2 border-[#DFD3C3]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Enregistrée">Enregistrée</SelectItem>
+                  <SelectItem value="Enregistrée (modifiée)">Enregistrée (modifiée)</SelectItem>
+                  <SelectItem value="En livraison">En livraison</SelectItem>
+                  <SelectItem value="Récupérée">Récupérée</SelectItem>
+                  <SelectItem value="Annulée">Annulée</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
