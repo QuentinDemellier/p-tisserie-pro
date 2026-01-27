@@ -105,6 +105,26 @@ export default function VendeurHome() {
     });
   };
 
+  const getOrderEventBadge = (orderId) => {
+    const lines = allOrderLines.filter(line => line.order_id === orderId);
+    
+    for (const line of lines) {
+      const product = products.find(p => p.id === line.product_id);
+      const category = categories.find(c => c.id === product?.category_id);
+      
+      if (product?.is_christmas || category?.is_christmas) {
+        return { icon: '🎄', label: 'Noël' };
+      }
+      if (product?.is_valentine || category?.is_valentine) {
+        return { icon: '❤️', label: 'Saint-Valentin' };
+      }
+      if (product?.is_epiphany || category?.is_epiphany) {
+        return { icon: '👑', label: 'Épiphanie' };
+      }
+    }
+    return null;
+  };
+
   return (
     <div className="p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -200,6 +220,7 @@ export default function VendeurHome() {
                 {pendingOrders.map(order => {
                   const lines = getOrderProducts(order.id);
                   const orderShop = shops.find(s => s.id === order.shop_id);
+                  const eventBadge = getOrderEventBadge(order.id);
                   return (
                     <Card key={order.id} className="border-[#DFD3C3]/30 hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
@@ -212,6 +233,11 @@ export default function VendeurHome() {
                               {orderShop && (
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                                   {orderShop.name}
+                                </Badge>
+                              )}
+                              {eventBadge && (
+                                <Badge className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-purple-200">
+                                  {eventBadge.icon} {eventBadge.label}
                                 </Badge>
                               )}
                               {order.status === 'Enregistrée (modifiée)' && (
@@ -255,10 +281,10 @@ export default function VendeurHome() {
                             </Button>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                        </CardContent>
+                        </Card>
+                        );
+                        })}
               </div>
             </CardContent>
           </Card>
@@ -271,19 +297,28 @@ export default function VendeurHome() {
                 Récupérées ({completedOrders.length})
               </h2>
               <div className="space-y-2">
-                {completedOrders.map(order => (
-                  <Card key={order.id} className="border-[#DFD3C3]/30 bg-green-50/30">
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 flex-1">
-                          <CheckCircle2 className="w-5 h-5 text-green-600" />
-                          <div>
-                            <p className="font-semibold text-gray-700">
-                              #{order.order_number} - {order.customer_firstname} {order.customer_name}
-                            </p>
-                            <p className="text-sm text-gray-600">{order.total_amount.toFixed(2)} €</p>
+                {completedOrders.map(order => {
+                  const eventBadge = getOrderEventBadge(order.id);
+                  return (
+                    <Card key={order.id} className="border-[#DFD3C3]/30 bg-green-50/30">
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 flex-1">
+                            <CheckCircle2 className="w-5 h-5 text-green-600" />
+                            <div className="flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-semibold text-gray-700">
+                                  #{order.order_number} - {order.customer_firstname} {order.customer_name}
+                                </p>
+                                {eventBadge && (
+                                  <Badge className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-purple-200 text-xs">
+                                    {eventBadge.icon} {eventBadge.label}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600">{order.total_amount.toFixed(2)} €</p>
+                            </div>
                           </div>
-                        </div>
                         <Button
                           variant="ghost"
                           size="sm"
