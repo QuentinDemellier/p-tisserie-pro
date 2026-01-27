@@ -130,6 +130,7 @@ L'équipe de la Pâtisserie
         duration: 5000,
         icon: "✓",
       });
+      setConfirmDialogOpen(false);
       setCart([]);
       setStep(1);
       setOrderData({
