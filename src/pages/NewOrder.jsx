@@ -232,7 +232,6 @@ L'équipe de la Pâtisserie
     if (!orderData.customer_firstname) errors.customer_firstname = "Le prénom est obligatoire";
     if (!orderData.customer_name) errors.customer_name = "Le nom est obligatoire";
     if (!orderData.customer_phone) errors.customer_phone = "Le téléphone est obligatoire";
-    if (!orderData.customer_email) errors.customer_email = "L'email est obligatoire";
 
     setFormErrors(errors);
 
@@ -366,7 +365,7 @@ L'équipe de la Pâtisserie
               </div>
 
               <div>
-                <Label htmlFor="customer_email">Email *</Label>
+                <Label htmlFor="customer_email">Email</Label>
                 <div className="relative mt-2">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
@@ -374,11 +373,10 @@ L'équipe de la Pâtisserie
                     type="email"
                     value={orderData.customer_email}
                     onChange={(e) => { setOrderData({ ...orderData, customer_email: e.target.value }); setFormErrors({...formErrors, customer_email: undefined}); }}
-                    className={`pl-10 ${formErrors.customer_email ? 'border-red-500' : 'border-[#DFD3C3]'}`}
+                    className={`pl-10 border-[#DFD3C3]`}
                     placeholder="client@exemple.fr"
                   />
                 </div>
-                {formErrors.customer_email && <p className="text-red-500 text-sm mt-1">{formErrors.customer_email}</p>}
               </div>
 
               {eventMode && (
