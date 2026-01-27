@@ -12,8 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Tag, Store, MapPin, Settings, Users, History, ShoppingBag, Moon, Sun } from "lucide-react";
-import { useEffect } from "react";
+import { Plus, Pencil, Trash2, Tag, Store, MapPin, Settings, Users, History, ShoppingBag } from "lucide-react";
 import ProductsManagement from "../components/products/ProductsManagement";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -22,11 +21,6 @@ import { toast } from "sonner";
 export default function Admin() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("products");
-  const [currentUser, setCurrentUser] = useState(null);
-
-  useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(() => {});
-  }, []);
 
   // Category states
   const [editingCategory, setEditingCategory] = useState(null);
@@ -223,17 +217,6 @@ export default function Admin() {
     onError: () => toast.error("Erreur lors de la mise à jour")
   });
 
-  const toggleDarkModeMutation = useMutation({
-    mutationFn: async (darkMode) => {
-      await base44.auth.updateMe({ dark_mode: darkMode });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success("Mode visuel mis à jour");
-      window.location.reload();
-    }
-  });
-
   // User handlers
   const handleOpenUserDialog = (user) => {
     setEditingUser(user);
@@ -278,32 +261,11 @@ export default function Admin() {
     <div className="p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-                <Settings className="w-8 h-8 text-[#C98F75]" />
-                Administration
-              </h1>
-              <p className="text-gray-600">Gérez les produits, catégories, boutiques et utilisateurs</p>
-            </div>
-            {currentUser && (
-              <Card className="border-[#DFD3C3]/30 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex flex-col">
-                    <Label className="text-xs text-gray-500 mb-1">Mode visuel</Label>
-                    <div className="flex items-center gap-2">
-                      <Sun className="w-4 h-4 text-gray-600" />
-                      <Switch
-                        checked={currentUser.dark_mode === true}
-                        onCheckedChange={(checked) => toggleDarkModeMutation.mutate(checked)}
-                      />
-                      <Moon className="w-4 h-4 text-gray-600" />
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            )}
-          </div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+            <Settings className="w-8 h-8 text-[#C98F75]" />
+            Administration
+          </h1>
+          <p className="text-gray-600">Gérez les produits, catégories, boutiques et utilisateurs</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
