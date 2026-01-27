@@ -24,6 +24,7 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
     customer_email: ""
   });
   const [lines, setLines] = useState([]);
+  const [errors, setErrors] = useState({});
 
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
@@ -254,8 +255,11 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="shop">Boutique de retrait *</Label>
-              <Select value={orderData.shop_id} onValueChange={(value) => setOrderData({...orderData, shop_id: value})}>
-                <SelectTrigger className="mt-2 border-[#DFD3C3]">
+              <Select value={orderData.shop_id} onValueChange={(value) => {
+                setOrderData({...orderData, shop_id: value});
+                setErrors({...errors, shop_id: undefined});
+              }}>
+                <SelectTrigger className={`mt-2 ${errors.shop_id ? 'border-red-500' : 'border-[#DFD3C3]'}`}>
                   <SelectValue placeholder="Sélectionnez une boutique" />
                 </SelectTrigger>
                 <SelectContent>
@@ -266,6 +270,7 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.shop_id && <p className="text-red-500 text-sm mt-1">{errors.shop_id}</p>}
             </div>
 
             <div>
@@ -276,10 +281,14 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
                   id="pickup_date"
                   type="date"
                   value={orderData.pickup_date}
-                  onChange={(e) => setOrderData({...orderData, pickup_date: e.target.value})}
-                  className="pl-10 border-[#DFD3C3]"
+                  onChange={(e) => {
+                    setOrderData({...orderData, pickup_date: e.target.value});
+                    setErrors({...errors, pickup_date: undefined});
+                  }}
+                  className={`pl-10 ${errors.pickup_date ? 'border-red-500' : 'border-[#DFD3C3]'}`}
                 />
               </div>
+              {errors.pickup_date && <p className="text-red-500 text-sm mt-1">{errors.pickup_date}</p>}
             </div>
 
             <div>
@@ -289,10 +298,14 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
                 <Input
                   id="customer_firstname"
                   value={orderData.customer_firstname}
-                  onChange={(e) => setOrderData({...orderData, customer_firstname: e.target.value})}
-                  className="pl-10 border-[#DFD3C3]"
+                  onChange={(e) => {
+                    setOrderData({...orderData, customer_firstname: e.target.value});
+                    setErrors({...errors, customer_firstname: undefined});
+                  }}
+                  className={`pl-10 ${errors.customer_firstname ? 'border-red-500' : 'border-[#DFD3C3]'}`}
                 />
               </div>
+              {errors.customer_firstname && <p className="text-red-500 text-sm mt-1">{errors.customer_firstname}</p>}
             </div>
 
             <div>
@@ -302,10 +315,14 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
                 <Input
                   id="customer_name"
                   value={orderData.customer_name}
-                  onChange={(e) => setOrderData({...orderData, customer_name: e.target.value})}
-                  className="pl-10 border-[#DFD3C3]"
+                  onChange={(e) => {
+                    setOrderData({...orderData, customer_name: e.target.value});
+                    setErrors({...errors, customer_name: undefined});
+                  }}
+                  className={`pl-10 ${errors.customer_name ? 'border-red-500' : 'border-[#DFD3C3]'}`}
                 />
               </div>
+              {errors.customer_name && <p className="text-red-500 text-sm mt-1">{errors.customer_name}</p>}
             </div>
 
             <div>
@@ -316,10 +333,14 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
                   id="customer_phone"
                   type="tel"
                   value={orderData.customer_phone}
-                  onChange={(e) => setOrderData({...orderData, customer_phone: e.target.value})}
-                  className="pl-10 border-[#DFD3C3]"
+                  onChange={(e) => {
+                    setOrderData({...orderData, customer_phone: e.target.value});
+                    setErrors({...errors, customer_phone: undefined});
+                  }}
+                  className={`pl-10 ${errors.customer_phone ? 'border-red-500' : 'border-[#DFD3C3]'}`}
                 />
               </div>
+              {errors.customer_phone && <p className="text-red-500 text-sm mt-1">{errors.customer_phone}</p>}
             </div>
 
             <div>
@@ -345,6 +366,7 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
                 Ajouter un produit
               </Button>
             </div>
+            {errors.lines && <p className="text-red-500 text-sm mb-2">{errors.lines}</p>}
             <div className="space-y-3">
               {lines.map((line, index) => (
                 <Card key={index} className="border-[#DFD3C3]/30">
@@ -449,35 +471,39 @@ export default function EditOrderDialog({ order, orderLines, onClose }) {
             </Button>
             <Button
               onClick={() => {
+                const newErrors = {};
+                
                 // Validation des champs obligatoires
                 if (!orderData.shop_id) {
-                  toast.error("Veuillez sélectionner une boutique de retrait");
-                  return;
+                  newErrors.shop_id = "Veuillez sélectionner une boutique de retrait";
                 }
                 if (!orderData.pickup_date) {
-                  toast.error("Veuillez sélectionner une date de retrait");
-                  return;
+                  newErrors.pickup_date = "Veuillez sélectionner une date de retrait";
                 }
                 if (!orderData.customer_firstname?.trim()) {
-                  toast.error("Le prénom du client est obligatoire");
-                  return;
+                  newErrors.customer_firstname = "Le prénom du client est obligatoire";
                 }
                 if (!orderData.customer_name?.trim()) {
-                  toast.error("Le nom du client est obligatoire");
-                  return;
+                  newErrors.customer_name = "Le nom du client est obligatoire";
                 }
                 if (!orderData.customer_phone?.trim()) {
-                  toast.error("Le téléphone du client est obligatoire");
-                  return;
+                  newErrors.customer_phone = "Le téléphone du client est obligatoire";
                 }
                 if (lines.length === 0) {
+                  newErrors.lines = "La commande doit contenir au moins un produit";
                   toast.error("La commande doit contenir au moins un produit");
-                  return;
                 }
+                
                 // Vérifier que tous les produits sont sélectionnés
                 const hasInvalidLine = lines.some(line => !line.product_id || line.quantity < 1);
                 if (hasInvalidLine) {
-                  toast.error("Tous les produits doivent être sélectionnés avec une quantité valide");
+                  newErrors.lines = "Tous les produits doivent être sélectionnés avec une quantité valide";
+                }
+                
+                setErrors(newErrors);
+                
+                if (Object.keys(newErrors).length > 0) {
+                  toast.error("Veuillez corriger les erreurs du formulaire");
                   return;
                 }
                 
