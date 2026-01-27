@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ShoppingCart, Calendar, CheckCircle2, Package, Pencil, Gift } from "lucide-react";
+import { CheckCircle2, Phone, Package, X } from "lucide-react";
 import EditOrderDialog from "../components/order/EditOrderDialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
 
@@ -22,29 +18,9 @@ export default function VendeurHome() {
   const [user, setUser] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderLines, setOrderLines] = useState([]);
-  const [optimisticStatus, setOptimisticStatus] = useState({});
   const [editingOrder, setEditingOrder] = useState(null);
   const [editingOrderLines, setEditingOrderLines] = useState([]);
-  const [filterMode, setFilterMode] = useState("today");
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-
-  const handleFilterMode = (mode) => {
-    setFilterMode(mode);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    if (mode === "today") {
-      const todayStr = today.toISOString().split('T')[0];
-      setStartDate(todayStr);
-      setEndDate(todayStr);
-    } else if (mode === "tomorrow") {
-      const tomorrowStr = tomorrow.toISOString().split('T')[0];
-      setStartDate(tomorrowStr);
-      setEndDate(tomorrowStr);
-    }
-  };
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -75,42 +51,26 @@ export default function VendeurHome() {
     queryFn: () => base44.entities.Category.list()
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status, oldStatus }) => {
-      await base44.entities.Order.update(id, { status });
+  const markAsPickedUpMutation = useMutation({
+    mutationFn: async ({ id, oldStatus }) => {
+      await base44.entities.Order.update(id, { status: 'Récupérée' });
       if (user) {
         await base44.entities.OrderStatusHistory.create({
           order_id: id,
           old_status: oldStatus,
-          new_status: status,
+          new_status: 'Récupérée',
           changed_by: user.email
         });
       }
     },
-    onSuccess: (data, variables) => {
-      setOptimisticStatus(prev => {
-        const newState = { ...prev };
-        delete newState[variables.id];
-        return newState;
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      if (variables.status === 'Récupérée') {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-      } else {
-        toast.success("Commande mise à jour");
-      }
-    },
-    onError: (error, variables) => {
-      setOptimisticStatus(prev => {
-        const newState = { ...prev };
-        delete newState[variables.id];
-        return newState;
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
       });
-      toast.error("Erreur lors de la mise à jour");
+      toast.success("Commande récupérée !");
     }
   });
 
@@ -130,335 +90,256 @@ export default function VendeurHome() {
   const userShop = shops.find(s => s.id === userShopId);
 
   const filteredOrders = orders.filter(order => 
-    order.pickup_date >= startDate && 
-    order.pickup_date <= endDate &&
+    order.pickup_date === selectedDate &&
     order.shop_id === userShopId &&
     order.status !== 'Annulée'
   );
 
-  const completedCount = filteredOrders.filter(order => 
-    order.status === 'Récupérée'
-  ).length;
+  const pendingOrders = filteredOrders.filter(o => o.status !== 'Récupérée');
+  const completedOrders = filteredOrders.filter(o => o.status === 'Récupérée');
 
-  const getStatusColor = (status) => {
-    const colors = {
-      "Enregistrée": "bg-blue-100 text-blue-800",
-      "Enregistrée (modifiée)": "bg-orange-100 text-orange-800",
-      "En livraison": "bg-purple-100 text-purple-800",
-      "Récupérée": "bg-green-100 text-green-800",
-      "Annulée": "bg-red-100 text-red-800"
-    };
-    return colors[status] || colors["Enregistrée"];
+  const getOrderProducts = (orderId) => {
+    return allOrderLines.filter(line => line.order_id === orderId);
   };
 
-  const getStatusLabel = (status) => {
-    return status || "Enregistrée";
-  };
-
-  const getEventBadge = (orderId) => {
-    const lines = allOrderLines.filter(line => line.order_id === orderId);
-    for (const line of lines) {
-      const product = products.find(p => p.id === line.product_id);
-      const category = categories.find(c => c.id === product?.category_id);
-      
-      if (product?.is_christmas || category?.is_christmas) {
-        return <Badge className="bg-red-100 text-red-800 border-red-300">🎄 Noël</Badge>;
-      }
-      if (product?.is_valentine || category?.is_valentine) {
-        return <Badge className="bg-pink-100 text-pink-800 border-pink-300">❤️ St-Valentin</Badge>;
-      }
-      if (product?.is_epiphany || category?.is_epiphany) {
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">👑 Épiphanie</Badge>;
-      }
-    }
-    return null;
+  const markAsPickedUp = (order) => {
+    markAsPickedUpMutation.mutate({
+      id: order.id,
+      oldStatus: order.status
+    });
   };
 
   return (
-    <div className="p-6 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-            <ShoppingCart className="w-8 h-8 text-[#C98F75]" />
+    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">
             Commandes à retirer
           </h1>
           {userShop && (
-            <p className="text-gray-600 text-lg">Boutique : <span className="font-semibold">{userShop.name}</span></p>
+            <p className="text-gray-600">{userShop.name}</p>
           )}
         </div>
 
-        <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
-          <CardContent className="p-4 sm:p-6">
-            {filterMode === "custom" ? (
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleFilterMode("today")}
-                    className="border-[#DFD3C3]"
-                  >
-                    Aujourd'hui
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleFilterMode("tomorrow")}
-                    className="border-[#DFD3C3]"
-                  >
-                    Demain
-                  </Button>
-                  <Button
-                    variant="default"
-                    className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white"
-                  >
-                    Plage de dates
-                  </Button>
-                </div>
+        <div className="mb-6 flex flex-wrap gap-2">
+          <Button
+            variant={selectedDate === new Date().toISOString().split('T')[0] ? "default" : "outline"}
+            onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+            className={selectedDate === new Date().toISOString().split('T')[0] ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] text-white" : ""}
+          >
+            Aujourd'hui
+          </Button>
+          <Button
+            variant={selectedDate === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0] ? "default" : "outline"}
+            onClick={() => {
+              const tomorrow = new Date();
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              setSelectedDate(tomorrow.toISOString().split('T')[0]);
+            }}
+            className={selectedDate === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0] ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] text-white" : ""}
+          >
+            Demain
+          </Button>
+          <Input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-auto"
+          />
+        </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="start_date" className="flex items-center gap-2 mb-2 text-sm">
-                      <Calendar className="w-4 h-4" />
-                      Date de début
-                    </Label>
-                    <Input
-                      id="start_date"
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="border-[#DFD3C3]"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="end_date" className="flex items-center gap-2 mb-2 text-sm">
-                      <Calendar className="w-4 h-4" />
-                      Date de fin
-                    </Label>
-                    <Input
-                      id="end_date"
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      min={startDate}
-                      className="border-[#DFD3C3]"
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={filterMode === "today" ? "default" : "outline"}
-                  onClick={() => handleFilterMode("today")}
-                  className={filterMode === "today" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
-                >
-                  Aujourd'hui
-                </Button>
-                <Button
-                  variant={filterMode === "tomorrow" ? "default" : "outline"}
-                  onClick={() => handleFilterMode("tomorrow")}
-                  className={filterMode === "tomorrow" ? "bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white" : "border-[#DFD3C3]"}
-                >
-                  Demain
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setFilterMode("custom")}
-                  className="border-[#DFD3C3]"
-                >
-                  Plage de dates
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-blue-50 to-white">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Commandes à retirer</p>
-                  <p className="text-4xl font-bold text-blue-600">{filteredOrders.length}</p>
-                </div>
-                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
-                  <Calendar className="w-8 h-8 text-blue-600" />
-                </div>
-              </div>
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <Card className="bg-white border-[#DFD3C3]/30">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600">Total</p>
+              <p className="text-3xl font-bold text-gray-800">{filteredOrders.length}</p>
             </CardContent>
           </Card>
-
-          <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-br from-green-50 to-white">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Déjà récupérées</p>
-                  <p className="text-4xl font-bold text-green-600">{completedCount}</p>
-                </div>
-                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
-                  <CheckCircle2 className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
+          <Card className="bg-orange-50 border-orange-200">
+            <CardContent className="p-4">
+              <p className="text-sm text-orange-700">En attente</p>
+              <p className="text-3xl font-bold text-orange-600">{pendingOrders.length}</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-green-50 border-green-200">
+            <CardContent className="p-4">
+              <p className="text-sm text-green-700">Récupérées</p>
+              <p className="text-3xl font-bold text-green-600">{completedOrders.length}</p>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm">
-          <CardHeader className="border-b border-[#DFD3C3]/30 bg-gradient-to-r from-[#F8EDE3] to-white">
-            <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5 text-[#C98F75]" />
-              Liste des commandes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            {filteredOrders.length === 0 ? (
-              <div className="text-center py-12">
-                <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Aucune commande sur cette période</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredOrders.map(order => {
-                  const currentStatus = optimisticStatus[order.id] !== undefined ? optimisticStatus[order.id] : order.status;
-                  const isCompleted = currentStatus === 'Récupérée';
-                  return (
-                  <Card key={order.id} className={`border-[#DFD3C3]/30 hover:shadow-md transition-shadow ${isCompleted ? 'opacity-50 bg-gray-50' : ''}`}>
+        {pendingOrders.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-3 text-orange-700">En attente ({pendingOrders.length})</h2>
+            <div className="space-y-3">
+              {pendingOrders.map(order => {
+                const lines = getOrderProducts(order.id);
+                return (
+                  <Card key={order.id} className="border-orange-200 bg-white hover:shadow-lg transition-shadow">
                     <CardContent className="p-4">
-                      <div className="flex flex-col sm:flex-row items-start gap-4">
-                       <div className="flex items-center pt-1">
-                         <Checkbox
-                           id={`order-${order.id}`}
-                           checked={isCompleted}
-                           onCheckedChange={(checked) => {
-                             if (checked) {
-                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'Récupérée' }));
-                               updateStatusMutation.mutate({
-                                 id: order.id,
-                                 status: 'Récupérée',
-                                 oldStatus: order.status
-                               });
-                             } else {
-                               setOptimisticStatus(prev => ({ ...prev, [order.id]: 'Enregistrée' }));
-                               updateStatusMutation.mutate({
-                                 id: order.id,
-                                 status: 'Enregistrée',
-                                 oldStatus: order.status
-                               });
-                             }
-                           }}
-                           className="h-6 w-6"
-                         />
-                       </div>
-                      <div className="flex-1 min-w-0">
-                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                         <span className={`font-mono font-semibold text-sm sm:text-lg ${isCompleted ? 'line-through text-gray-400' : 'text-[#C98F75]'}`}>
-                           {order.order_number}
-                         </span>
-                         <Badge className={getStatusColor(currentStatus)}>
-                           {getStatusLabel(currentStatus)}
-                         </Badge>
-                         {getEventBadge(order.id)}
-                       </div>
-                        <p className={`mb-1 text-sm sm:text-base ${isCompleted ? 'text-gray-500' : 'text-gray-700'}`}>
-                          <span className="font-medium">Client :</span> {order.customer_firstname} {order.customer_name}
-                        </p>
-                        <p className={`text-xs sm:text-sm ${isCompleted ? 'text-gray-400' : 'text-gray-600'}`}>
-                          <span className="font-medium">Téléphone :</span> {order.customer_phone}
-                        </p>
-                        {order.ticket_number && (
-                          <p className={`text-xs sm:text-sm ${isCompleted ? 'text-gray-400' : 'text-gray-600'}`}>
-                            <span className="font-medium">N° Ticket :</span> {order.ticket_number}
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xl font-bold text-[#C98F75]">#{order.order_number}</span>
+                            {order.status === 'Enregistrée (modifiée)' && (
+                              <Badge className="bg-orange-100 text-orange-800">Modifiée</Badge>
+                            )}
+                          </div>
+                          <p className="text-lg font-medium mb-1">
+                            {order.customer_firstname} {order.customer_name}
                           </p>
-                        )}
-                        <p className={`text-lg sm:text-xl font-bold mt-2 ${isCompleted ? 'text-gray-400' : 'text-[#C98F75]'}`}>
-                          {order.total_amount.toFixed(2)} €
-                        </p>
+                          <p className="text-sm text-gray-600 flex items-center gap-1 mb-3">
+                            <Phone className="w-4 h-4" />
+                            {order.customer_phone}
+                          </p>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {lines.map(line => (
+                              <Badge key={line.id} variant="outline" className="text-xs">
+                                {line.quantity}x {line.product_name}
+                              </Badge>
+                            ))}
+                          </div>
+                          <p className="text-2xl font-bold text-[#C98F75]">
+                            {order.total_amount.toFixed(2)} €
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Button
+                            size="lg"
+                            onClick={() => markAsPickedUp(order)}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <CheckCircle2 className="w-5 h-5 mr-2" />
+                            Récupérée
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewDetails(order)}
+                          >
+                            Détails
+                          </Button>
+                        </div>
                       </div>
-                      <div className="w-full sm:w-auto flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          className="border-[#DFD3C3]"
-                          onClick={() => handleEditOrder(order)}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="border-[#DFD3C3] flex-1 sm:flex-none text-sm"
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {completedOrders.length > 0 && (
+          <div>
+            <h2 className="text-lg font-semibold mb-3 text-green-700">Récupérées ({completedOrders.length})</h2>
+            <div className="space-y-2">
+              {completedOrders.map(order => {
+                const lines = getOrderProducts(order.id);
+                return (
+                  <Card key={order.id} className="border-green-200 bg-green-50/50 opacity-70">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-green-600" />
+                          <div>
+                            <p className="font-semibold text-gray-700">
+                              #{order.order_number} - {order.customer_firstname} {order.customer_name}
+                            </p>
+                            <p className="text-sm text-gray-600">{order.total_amount.toFixed(2)} €</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleViewDetails(order)}
                         >
-                          Voir détails
+                          Voir
                         </Button>
                       </div>
-                     </div>
-                     </CardContent>
-                     </Card>
-                     );
-                     })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {filteredOrders.length === 0 && (
+          <Card className="border-[#DFD3C3]/30">
+            <CardContent className="p-12 text-center">
+              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">Aucune commande pour cette date</p>
+            </CardContent>
+          </Card>
+        )}
 
         <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-2xl">
-                Détails de la commande {selectedOrder?.order_number}
+              <DialogTitle className="text-2xl font-bold text-[#C98F75]">
+                Commande #{selectedOrder?.order_number}
               </DialogTitle>
             </DialogHeader>
             
             {selectedOrder && (
-              <div className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="font-semibold text-sm text-gray-500 mb-2">Informations client</h3>
-                    <div className="space-y-1">
-                      <p><span className="font-medium">Nom :</span> {selectedOrder.customer_firstname} {selectedOrder.customer_name}</p>
-                      <p><span className="font-medium">Téléphone :</span> {selectedOrder.customer_phone}</p>
-                      <p><span className="font-medium">Email :</span> {selectedOrder.customer_email}</p>
+              <div className="space-y-4">
+                <Card className="bg-gray-50 border-none">
+                  <CardContent className="p-4">
+                    <p className="text-xl font-bold mb-1">{selectedOrder.customer_firstname} {selectedOrder.customer_name}</p>
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Phone className="w-4 h-4" />
+                      <p>{selectedOrder.customer_phone}</p>
                     </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-sm text-gray-500 mb-2">Informations retrait</h3>
-                    <div className="space-y-1">
-                      <p><span className="font-medium">Boutique :</span> {userShop?.name}</p>
-                      <p><span className="font-medium">Date :</span> {format(new Date(selectedOrder.pickup_date), 'dd MMMM yyyy', { locale: fr })}</p>
-                      <p><span className="font-medium">Statut :</span> <Badge className={getStatusColor(selectedOrder.status)}>{getStatusLabel(selectedOrder.status)}</Badge></p>
-                    </div>
-                  </div>
-                </div>
+                    {selectedOrder.customer_email && (
+                      <p className="text-sm text-gray-600 mt-1">{selectedOrder.customer_email}</p>
+                    )}
+                    {selectedOrder.ticket_number && (
+                      <p className="text-sm text-gray-600 mt-1">Ticket: {selectedOrder.ticket_number}</p>
+                    )}
+                  </CardContent>
+                </Card>
 
                 <div>
-                  <h3 className="font-semibold text-sm text-gray-500 mb-3">Produits commandés</h3>
-                  <div className="space-y-3">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Produits
+                  </h3>
+                  <div className="space-y-2">
                     {orderLines.map(line => (
-                      <Card key={line.id} className="border-[#DFD3C3]/30">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="font-semibold">{line.quantity}x {line.product_name}</p>
-                              <p className="text-sm text-gray-600">{line.unit_price.toFixed(2)} € / unité</p>
-                            </div>
-                            <p className="font-bold text-[#C98F75]">{line.subtotal.toFixed(2)} €</p>
-                          </div>
+                      <div key={line.id} className="flex justify-between items-start p-3 bg-white rounded-lg border border-gray-200">
+                        <div className="flex-1">
+                          <p className="font-semibold text-lg">{line.quantity}x {line.product_name}</p>
                           {line.customization && (
-                            <div className="mt-2 p-2 bg-[#F8EDE3]/50 rounded text-sm">
-                              <span className="font-medium">Personnalisation :</span> {line.customization}
-                            </div>
+                            <p className="text-sm text-gray-600 mt-1 italic">→ {line.customization}</p>
                           )}
-                        </CardContent>
-                      </Card>
+                        </div>
+                        <p className="font-bold text-[#C98F75] text-lg">{line.subtotal.toFixed(2)} €</p>
+                      </div>
                     ))}
                   </div>
                 </div>
 
                 <div className="pt-4 border-t-2 border-[#E0A890] flex justify-between items-center">
                   <span className="text-xl font-bold">Total</span>
-                  <span className="text-2xl font-bold text-[#C98F75]">
+                  <span className="text-3xl font-bold text-[#C98F75]">
                     {selectedOrder.total_amount.toFixed(2)} €
                   </span>
                 </div>
+
+                {selectedOrder.status !== 'Récupérée' && (
+                  <Button
+                    size="lg"
+                    onClick={() => {
+                      markAsPickedUp(selectedOrder);
+                      setSelectedOrder(null);
+                    }}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <CheckCircle2 className="w-5 h-5 mr-2" />
+                    Marquer comme récupérée
+                  </Button>
+                )}
               </div>
             )}
           </DialogContent>
@@ -472,7 +353,7 @@ export default function VendeurHome() {
             setEditingOrderLines([]);
           }}
         />
-        </div>
-        </div>
-        );
-        }
+      </div>
+    </div>
+  );
+}
