@@ -41,6 +41,13 @@ export default function Layout({ children, currentPageName }) {
         const userData = await base44.auth.me();
         setUser(userData);
         
+        // Appliquer le mode sombre si activé
+        if (userData.dark_mode === true) {
+          document.documentElement.classList.add('dark-mode');
+        } else {
+          document.documentElement.classList.remove('dark-mode');
+        }
+        
         // Check for event orders
         const [orders, orderLines, products, categories] = await Promise.all([
           base44.entities.Order.list(),
@@ -127,15 +134,69 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <style>{`
-        :root {
-          --color-primary: #E0A890;
-          --color-primary-dark: #C98F75;
-          --color-secondary: #F8EDE3;
-          --color-accent: #DFD3C3;
-          --color-success: #8BC34A;
-        }
-      `}</style>
+        <style>{`
+          :root {
+            --color-primary: #E0A890;
+            --color-primary-dark: #C98F75;
+            --color-secondary: #F8EDE3;
+            --color-accent: #DFD3C3;
+            --color-success: #8BC34A;
+          }
+
+          .dark-mode {
+            --color-primary: #1a1a1a;
+            --color-primary-dark: #0a0a0a;
+            --color-secondary: #2d2d2d;
+            --color-accent: #404040;
+          }
+
+          .dark-mode body,
+          .dark-mode .min-h-screen {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%) !important;
+          }
+
+          .dark-mode .bg-white,
+          .dark-mode .bg-white\/90,
+          .dark-mode .bg-white\/80 {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+          }
+
+          .dark-mode .text-gray-800,
+          .dark-mode .text-gray-900 {
+            color: #f0f0f0 !important;
+          }
+
+          .dark-mode .text-gray-600 {
+            color: #b0b0b0 !important;
+          }
+
+          .dark-mode .text-gray-500 {
+            color: #909090 !important;
+          }
+
+          .dark-mode .border-\\[\\#DFD3C3\\]\\/30,
+          .dark-mode .border-\\[\\#DFD3C3\\]\\/20 {
+            border-color: #404040 !important;
+          }
+
+          .dark-mode .bg-gradient-to-br.from-\\[\\#FBF8F3\\] {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%) !important;
+          }
+
+          .dark-mode .bg-gradient-to-r.from-\\[\\#F8EDE3\\],
+          .dark-mode .bg-gradient-to-r.from-\\[\\#E0A890\\] {
+            background: linear-gradient(90deg, #2d2d2d 0%, #404040 100%) !important;
+          }
+
+          .dark-mode .hover\\:bg-\\[\\#E0A890\\]\\/10:hover {
+            background-color: rgba(64, 64, 64, 0.3) !important;
+          }
+
+          .dark-mode .bg-\\[\\#E0A890\\]\\/20 {
+            background-color: rgba(64, 64, 64, 0.4) !important;
+          }
+        `}</style>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-[#FBF8F3] to-[#F8EDE3]">
         <Sidebar className="border-r border-[#DFD3C3]/30 bg-white/80 backdrop-blur-sm">
           <SidebarHeader className="border-b border-[#DFD3C3]/30 p-6">
