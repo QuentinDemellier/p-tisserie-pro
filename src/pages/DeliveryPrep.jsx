@@ -53,7 +53,33 @@ export default function DeliveryPrep() {
         });
       }
     },
-    onSuccess: () => {
+    onMutate: async ({ delivery_date, shop_id, product_name, checked }) => {
+      await queryClient.cancelQueries({ queryKey: ['deliveryItems', selectedDate] });
+      
+      const previousItems = queryClient.getQueryData(['deliveryItems', selectedDate]);
+      
+      queryClient.setQueryData(['deliveryItems', selectedDate], (old = []) => {
+        const existingItem = old.find(
+          item => item.shop_id === shop_id && item.product_name === product_name
+        );
+        
+        if (existingItem) {
+          return old.map(item => 
+            item.shop_id === shop_id && item.product_name === product_name
+              ? { ...item, checked }
+              : item
+          );
+        } else {
+          return [...old, { delivery_date, shop_id, product_name, checked }];
+        }
+      });
+      
+      return { previousItems };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['deliveryItems', selectedDate], context.previousItems);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['deliveryItems', selectedDate] });
     }
   });
