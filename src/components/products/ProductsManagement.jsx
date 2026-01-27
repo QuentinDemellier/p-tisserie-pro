@@ -188,56 +188,63 @@ export default function ProductsManagement() {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-        <div className="flex flex-wrap gap-2">
-          <Select value={productFilterCategory} onValueChange={setProductFilterCategory}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Catégorie" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les catégories</SelectItem>
-              {categories.map(cat => {
-                let emoji = '';
-                if (cat.is_christmas === true) emoji = '🎄 ';
-                if (cat.is_valentine === true) emoji = '❤️ ';
-                if (cat.is_epiphany === true) emoji = '👑 ';
-                if (cat.is_custom_event === true) emoji = (cat.event_icon || '🎉') + ' ';
-                return (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {emoji}{cat.name}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-          <Select value={productFilterStatus} onValueChange={setProductFilterStatus}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Statut" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              <SelectItem value="active">Actif</SelectItem>
-              <SelectItem value="inactive">Inactif</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={productSortOrder} onValueChange={setProductSortOrder}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tri" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="default">Plus récent</SelectItem>
-              <SelectItem value="name-asc">Nom (A-Z)</SelectItem>
-              <SelectItem value="name-desc">Nom (Z-A)</SelectItem>
-              <SelectItem value="price-asc">Prix croissant</SelectItem>
-              <SelectItem value="price-desc">Prix décroissant</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <Button onClick={() => handleOpenProductDialog()} className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Nouveau produit
-        </Button>
-      </div>
+      <Card className="border-[#DFD3C3]/30 bg-white/80 backdrop-blur-sm shadow-lg mb-4">
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row justify-between gap-4">
+            <div className="flex flex-wrap gap-3">
+              <Select value={productFilterCategory} onValueChange={setProductFilterCategory}>
+                <SelectTrigger className="w-[200px] bg-white border-[#DFD3C3] shadow-sm">
+                  <SelectValue placeholder="Catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les catégories</SelectItem>
+                  {categories.map(cat => {
+                    let emoji = '';
+                    if (cat.is_christmas === true) emoji = '🎄 ';
+                    if (cat.is_valentine === true) emoji = '❤️ ';
+                    if (cat.is_epiphany === true) emoji = '👑 ';
+                    if (cat.is_custom_event === true) emoji = (cat.event_icon || '🎉') + ' ';
+                    return (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {emoji}{cat.name}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              
+              <Select value={productFilterStatus} onValueChange={setProductFilterStatus}>
+                <SelectTrigger className="w-[160px] bg-white border-[#DFD3C3] shadow-sm">
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="active">Actif</SelectItem>
+                  <SelectItem value="inactive">Inactif</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={productSortOrder} onValueChange={setProductSortOrder}>
+                <SelectTrigger className="w-[180px] bg-white border-[#DFD3C3] shadow-sm">
+                  <SelectValue placeholder="Tri" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Plus récent</SelectItem>
+                  <SelectItem value="name-asc">Nom (A-Z)</SelectItem>
+                  <SelectItem value="name-desc">Nom (Z-A)</SelectItem>
+                  <SelectItem value="price-asc">Prix croissant</SelectItem>
+                  <SelectItem value="price-desc">Prix décroissant</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Button onClick={() => handleOpenProductDialog()} className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white shadow-md">
+              <Plus className="w-4 h-4 mr-2" />
+              Nouveau produit
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {selectedProducts.length > 0 && (
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-gradient-to-r from-[#E0A890] to-[#C98F75] text-white mb-4">

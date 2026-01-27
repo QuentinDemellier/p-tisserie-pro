@@ -20,6 +20,8 @@ export default function NewOrder() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [eventMode, setEventMode] = useState(null); // null, 'christmas', 'valentine', 'epiphany'
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [sortOrder, setSortOrder] = useState("default");
   const [step, setStep] = useState(1); // 1: catalog, 2: summary
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [stockErrorDialogOpen, setStockErrorDialogOpen] = useState(false);
@@ -197,33 +199,52 @@ L'équipe de la Pâtisserie
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || product.category_id === selectedCategory;
-    const category = allCategories.find((cat) => cat.id === product.category_id);
-    const categoryIsActive = category?.active !== false;
+  const filteredProducts = products
+    .filter((product) => {
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === "all" || product.category_id === selectedCategory;
+      const category = allCategories.find((cat) => cat.id === product.category_id);
+      const categoryIsActive = category?.active !== false;
 
-    const isChristmas = product.is_christmas === true || category?.is_christmas === true;
-    const isValentine = product.is_valentine === true || category?.is_valentine === true;
-    const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
-    const isCustomEvent = product.is_custom_event === true || category?.is_custom_event === true;
-    const isEvent = isChristmas || isValentine || isEpiphany || isCustomEvent;
+      const isChristmas = product.is_christmas === true || category?.is_christmas === true;
+      const isValentine = product.is_valentine === true || category?.is_valentine === true;
+      const isEpiphany = product.is_epiphany === true || category?.is_epiphany === true;
+      const isCustomEvent = product.is_custom_event === true || category?.is_custom_event === true;
+      const isEvent = isChristmas || isValentine || isEpiphany || isCustomEvent;
 
-    let matchesEventMode = true;
-    if (eventMode === 'christmas') {
-      matchesEventMode = isChristmas;
-    } else if (eventMode === 'valentine') {
-      matchesEventMode = isValentine;
-    } else if (eventMode === 'epiphany') {
-      matchesEventMode = isEpiphany;
-    } else if (eventMode === 'custom') {
-      matchesEventMode = isCustomEvent;
-    } else {
-      matchesEventMode = !isEvent;
-    }
+      let matchesEventMode = true;
+      if (eventMode === 'christmas') {
+        matchesEventMode = isChristmas;
+      } else if (eventMode === 'valentine') {
+        matchesEventMode = isValentine;
+      } else if (eventMode === 'epiphany') {
+        matchesEventMode = isEpiphany;
+      } else if (eventMode === 'custom') {
+        matchesEventMode = isCustomEvent;
+      } else {
+        matchesEventMode = !isEvent;
+      }
 
-    return matchesSearch && matchesCategory && categoryIsActive && matchesEventMode;
-  });
+      // Filtre par statut
+      const matchesStatus =
+        filterStatus === "all" ||
+        (filterStatus === "active" && product.active !== false) ||
+        (filterStatus === "inactive" && product.active === false);
+
+      return matchesSearch && matchesCategory && categoryIsActive && matchesEventMode && matchesStatus;
+    })
+    .sort((a, b) => {
+      if (sortOrder === "name-asc") {
+        return (a.name || "").localeCompare(b.name || "");
+      } else if (sortOrder === "name-desc") {
+        return (b.name || "").localeCompare(a.name || "");
+      } else if (sortOrder === "price-asc") {
+        return (a.price || 0) - (b.price || 0);
+      } else if (sortOrder === "price-desc") {
+        return (b.price || 0) - (a.price || 0);
+      }
+      return 0;
+    });
 
   const handleSubmit = () => {
     const errors = {};
@@ -554,6 +575,32 @@ L'équipe de la Pâtisserie
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 py-6 text-lg border-[#DFD3C3] bg-white/80 backdrop-blur-sm shadow-sm"
                 />
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-[160px] bg-white/80 backdrop-blur-sm border-[#DFD3C3] shadow-sm">
+                    <SelectValue placeholder="Statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="active">Actif</SelectItem>
+                    <SelectItem value="inactive">Inactif</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                  <SelectTrigger className="w-[180px] bg-white/80 backdrop-blur-sm border-[#DFD3C3] shadow-sm">
+                    <SelectValue placeholder="Tri" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Par défaut</SelectItem>
+                    <SelectItem value="name-asc">Nom (A-Z)</SelectItem>
+                    <SelectItem value="name-desc">Nom (Z-A)</SelectItem>
+                    <SelectItem value="price-asc">Prix croissant</SelectItem>
+                    <SelectItem value="price-desc">Prix décroissant</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex gap-3 items-center flex-wrap">
