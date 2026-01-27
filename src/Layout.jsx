@@ -103,15 +103,13 @@ export default function Layout({ children, currentPageName }) {
   const navigationByRole = {
     vendeur: [
       { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
-      { title: "Liste des commandes", url: createPageUrl("OrdersList"), icon: Store },
-      { title: "Commandes du jour", url: createPageUrl("VendeurHome"), icon: Cake },
-      ...(hasEventOrders ? [{ title: "Récupération de commande", url: createPageUrl("EventOrders"), icon: Gift }] : [])
+        { title: "Liste des commandes", url: createPageUrl("OrdersList"), icon: Store },
+        { title: "Commandes du jour", url: createPageUrl("VendeurHome"), icon: Cake }
     ],
     boutique: [
       { title: "Accueil", url: createPageUrl("VendeurHome"), icon: Cake },
       { title: "Nouvelle commande", url: createPageUrl("NewOrder"), icon: ShoppingCart },
-      { title: "Toutes les commandes", url: createPageUrl("OrdersList"), icon: Store },
-      ...(hasEventOrders ? [{ title: "Récupération de commande", url: createPageUrl("EventOrders"), icon: Gift }] : [])
+      { title: "Toutes les commandes", url: createPageUrl("OrdersList"), icon: Store }
     ],
     production: [
       { title: "Planning production", url: createPageUrl("Production"), icon: Factory },

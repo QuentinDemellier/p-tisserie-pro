@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ShoppingCart, Calendar, CheckCircle2, Package, Pencil } from "lucide-react";
+import { ShoppingCart, Calendar, CheckCircle2, Package, Pencil, Gift } from "lucide-react";
 import EditOrderDialog from "../components/order/EditOrderDialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -40,6 +40,21 @@ export default function VendeurHome() {
   const { data: shops = [] } = useQuery({
     queryKey: ['shops'],
     queryFn: () => base44.entities.Shop.list()
+  });
+
+  const { data: allOrderLines = [] } = useQuery({
+    queryKey: ['orderLines'],
+    queryFn: () => base44.entities.OrderLine.list()
+  });
+
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: () => base44.entities.Product.list()
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => base44.entities.Category.list()
   });
 
   const updateStatusMutation = useMutation({
@@ -121,6 +136,25 @@ export default function VendeurHome() {
 
   const getStatusLabel = (status) => {
     return status || "Enregistrée";
+  };
+
+  const getEventBadge = (orderId) => {
+    const lines = allOrderLines.filter(line => line.order_id === orderId);
+    for (const line of lines) {
+      const product = products.find(p => p.id === line.product_id);
+      const category = categories.find(c => c.id === product?.category_id);
+      
+      if (product?.is_christmas || category?.is_christmas) {
+        return <Badge className="bg-red-100 text-red-800 border-red-300">🎄 Noël</Badge>;
+      }
+      if (product?.is_valentine || category?.is_valentine) {
+        return <Badge className="bg-pink-100 text-pink-800 border-pink-300">❤️ St-Valentin</Badge>;
+      }
+      if (product?.is_epiphany || category?.is_epiphany) {
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">👑 Épiphanie</Badge>;
+      }
+    }
+    return null;
   };
 
   return (
@@ -215,20 +249,26 @@ export default function VendeurHome() {
                          />
                        </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <span className={`font-mono font-semibold text-sm sm:text-lg ${isCompleted ? 'line-through text-gray-400' : 'text-[#C98F75]'}`}>
-                            {order.order_number}
-                          </span>
-                          <Badge className={getStatusColor(currentStatus)}>
-                            {getStatusLabel(currentStatus)}
-                          </Badge>
-                        </div>
+                       <div className="flex flex-wrap items-center gap-2 mb-2">
+                         <span className={`font-mono font-semibold text-sm sm:text-lg ${isCompleted ? 'line-through text-gray-400' : 'text-[#C98F75]'}`}>
+                           {order.order_number}
+                         </span>
+                         <Badge className={getStatusColor(currentStatus)}>
+                           {getStatusLabel(currentStatus)}
+                         </Badge>
+                         {getEventBadge(order.id)}
+                       </div>
                         <p className={`mb-1 text-sm sm:text-base ${isCompleted ? 'text-gray-500' : 'text-gray-700'}`}>
                           <span className="font-medium">Client :</span> {order.customer_firstname} {order.customer_name}
                         </p>
                         <p className={`text-xs sm:text-sm ${isCompleted ? 'text-gray-400' : 'text-gray-600'}`}>
                           <span className="font-medium">Téléphone :</span> {order.customer_phone}
                         </p>
+                        {order.ticket_number && (
+                          <p className={`text-xs sm:text-sm ${isCompleted ? 'text-gray-400' : 'text-gray-600'}`}>
+                            <span className="font-medium">N° Ticket :</span> {order.ticket_number}
+                          </p>
+                        )}
                         <p className={`text-lg sm:text-xl font-bold mt-2 ${isCompleted ? 'text-gray-400' : 'text-[#C98F75]'}`}>
                           {order.total_amount.toFixed(2)} €
                         </p>
