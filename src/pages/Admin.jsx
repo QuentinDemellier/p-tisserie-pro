@@ -565,32 +565,13 @@ export default function Admin() {
                   </div>
                   <Switch 
                     checked={categoryFormData.is_christmas} 
-                    onCheckedChange={async (checked) => {
-                      if (checked) {
-                        const otherEventCategories = categories.filter(cat => 
-                          cat.id !== editingCategory?.id && 
-                          (cat.is_christmas || cat.is_valentine || cat.is_epiphany || cat.is_custom_event)
-                        );
-                        if (otherEventCategories.length > 0) {
-                          await Promise.all(
-                            otherEventCategories.map(cat => 
-                              base44.entities.Category.update(cat.id, { 
-                                is_christmas: false, 
-                                is_valentine: false, 
-                                is_epiphany: false,
-                                is_custom_event: false
-                              })
-                            )
-                          );
-                          queryClient.invalidateQueries({ queryKey: ['categories'] });
-                        }
-                      }
+                    onCheckedChange={(checked) => {
                       setCategoryFormData({
                         ...categoryFormData, 
                         is_christmas: checked,
-                        is_valentine: false,
-                        is_epiphany: false,
-                        is_custom_event: false
+                        is_valentine: checked ? false : categoryFormData.is_valentine,
+                        is_epiphany: checked ? false : categoryFormData.is_epiphany,
+                        is_custom_event: checked ? false : categoryFormData.is_custom_event
                       });
                     }} 
                   />
@@ -605,32 +586,13 @@ export default function Admin() {
                   </div>
                   <Switch 
                     checked={categoryFormData.is_valentine} 
-                    onCheckedChange={async (checked) => {
-                      if (checked) {
-                        const otherEventCategories = categories.filter(cat => 
-                          cat.id !== editingCategory?.id && 
-                          (cat.is_christmas || cat.is_valentine || cat.is_epiphany || cat.is_custom_event)
-                        );
-                        if (otherEventCategories.length > 0) {
-                          await Promise.all(
-                            otherEventCategories.map(cat => 
-                              base44.entities.Category.update(cat.id, { 
-                                is_christmas: false, 
-                                is_valentine: false, 
-                                is_epiphany: false,
-                                is_custom_event: false
-                              })
-                            )
-                          );
-                          queryClient.invalidateQueries({ queryKey: ['categories'] });
-                        }
-                      }
+                    onCheckedChange={(checked) => {
                       setCategoryFormData({
                         ...categoryFormData, 
                         is_valentine: checked,
-                        is_christmas: false,
-                        is_epiphany: false,
-                        is_custom_event: false
+                        is_christmas: checked ? false : categoryFormData.is_christmas,
+                        is_epiphany: checked ? false : categoryFormData.is_epiphany,
+                        is_custom_event: checked ? false : categoryFormData.is_custom_event
                       });
                     }} 
                   />
@@ -645,32 +607,13 @@ export default function Admin() {
                   </div>
                   <Switch 
                     checked={categoryFormData.is_epiphany} 
-                    onCheckedChange={async (checked) => {
-                      if (checked) {
-                        const otherEventCategories = categories.filter(cat => 
-                          cat.id !== editingCategory?.id && 
-                          (cat.is_christmas || cat.is_valentine || cat.is_epiphany || cat.is_custom_event)
-                        );
-                        if (otherEventCategories.length > 0) {
-                          await Promise.all(
-                            otherEventCategories.map(cat => 
-                              base44.entities.Category.update(cat.id, { 
-                                is_christmas: false, 
-                                is_valentine: false, 
-                                is_epiphany: false,
-                                is_custom_event: false
-                              })
-                            )
-                          );
-                          queryClient.invalidateQueries({ queryKey: ['categories'] });
-                        }
-                      }
+                    onCheckedChange={(checked) => {
                       setCategoryFormData({
                         ...categoryFormData, 
                         is_epiphany: checked,
-                        is_christmas: false,
-                        is_valentine: false,
-                        is_custom_event: false
+                        is_christmas: checked ? false : categoryFormData.is_christmas,
+                        is_valentine: checked ? false : categoryFormData.is_valentine,
+                        is_custom_event: checked ? false : categoryFormData.is_custom_event
                       });
                     }} 
                   />
@@ -684,32 +627,13 @@ export default function Admin() {
                   </div>
                   <Switch 
                     checked={categoryFormData.is_custom_event} 
-                    onCheckedChange={async (checked) => {
-                      if (checked) {
-                        const otherEventCategories = categories.filter(cat => 
-                          cat.id !== editingCategory?.id && 
-                          (cat.is_christmas || cat.is_valentine || cat.is_epiphany || cat.is_custom_event)
-                        );
-                        if (otherEventCategories.length > 0) {
-                          await Promise.all(
-                            otherEventCategories.map(cat => 
-                              base44.entities.Category.update(cat.id, { 
-                                is_christmas: false, 
-                                is_valentine: false, 
-                                is_epiphany: false,
-                                is_custom_event: false
-                              })
-                            )
-                          );
-                          queryClient.invalidateQueries({ queryKey: ['categories'] });
-                        }
-                      }
+                    onCheckedChange={(checked) => {
                       setCategoryFormData({
                         ...categoryFormData, 
                         is_custom_event: checked,
-                        is_christmas: false,
-                        is_valentine: false,
-                        is_epiphany: false
+                        is_christmas: checked ? false : categoryFormData.is_christmas,
+                        is_valentine: checked ? false : categoryFormData.is_valentine,
+                        is_epiphany: checked ? false : categoryFormData.is_epiphany
                       });
                     }} 
                   />
