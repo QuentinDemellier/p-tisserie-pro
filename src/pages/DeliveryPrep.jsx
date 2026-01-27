@@ -104,39 +104,38 @@ export default function DeliveryPrep() {
     };
   }).filter(delivery => delivery.products.length > 0);
 
-  const handleToggle = async (shopId, productName) => {
+  const handleToggle = (shopId, productName) => {
     const existingItem = deliveryItems.find(
       item => item.shop_id === shopId && item.product_name === productName
     );
     const newCheckedState = !existingItem?.checked;
     
-    await updateDeliveryItemMutation.mutateAsync({
+    updateDeliveryItemMutation.mutate({
       delivery_date: selectedDate,
       shop_id: shopId,
       product_name: productName,
       checked: newCheckedState
     });
 
-    // Mettre à jour le statut des commandes concernées en "en_livraison"
     if (newCheckedState) {
       const shopOrders = filteredOrders.filter(o => o.shop_id === shopId);
-      for (const order of shopOrders) {
+      shopOrders.forEach(order => {
         const lines = orderLines.filter(line => line.order_id === order.id);
         const hasProduct = lines.some(line => line.product_name === productName);
-        if (hasProduct && (order.status === 'enregistree' || order.status === 'enregistree_modifiee')) {
-          await updateOrderStatusMutation.mutateAsync({
+        if (hasProduct && (order.status === 'Enregistrée' || order.status === 'Enregistrée (modifiée)')) {
+          updateOrderStatusMutation.mutate({
             orderId: order.id,
-            status: 'en_livraison'
+            status: 'En livraison'
           });
         }
-      }
+      });
+
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.7 }
+      });
     }
-    
-    confetti({
-      particleCount: 50,
-      spread: 60,
-      origin: { y: 0.7 }
-    });
   };
 
   const isItemChecked = (shopId, productName) => {
