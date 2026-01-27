@@ -181,7 +181,7 @@ export default function Home() {
                     <space.icon className="w-8 h-8 text-white" />
                   </div>
                   <CardTitle className="text-2xl mb-2">{space.title}</CardTitle>
-                  <CardDescription className="text-base mb-2">
+                  <CardDescription className="text-base mb-2 min-h-12 flex items-center">
                     {space.description}
                   </CardDescription>
                   <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
