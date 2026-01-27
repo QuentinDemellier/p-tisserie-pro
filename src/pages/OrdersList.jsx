@@ -412,29 +412,8 @@ export default function OrdersList() {
                       <p><span className="font-medium">Boutique :</span> {shops.find(s => s.id === selectedOrder.shop_id)?.name}</p>
                       <p><span className="font-medium">Date :</span> {format(new Date(selectedOrder.pickup_date), 'dd MMMM yyyy', { locale: fr })}</p>
                       <div>
-                        <Label className="text-xs text-gray-500 mb-1">Statut de la commande</Label>
-                        <Select 
-                          value={tempStatus} 
-                          onValueChange={(newStatus) => {
-                            setTempStatus(newStatus);
-                            updateStatusMutation.mutate({
-                              id: selectedOrder.id,
-                              status: newStatus,
-                              oldStatus: selectedOrder.status
-                            });
-                          }}
-                        >
-                          <SelectTrigger className="mt-1 w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Enregistrée">Enregistrée</SelectItem>
-                            <SelectItem value="Enregistrée (modifiée)">Enregistrée (modifiée)</SelectItem>
-                            <SelectItem value="En livraison">En livraison</SelectItem>
-                            <SelectItem value="Récupérée">Récupérée</SelectItem>
-                            <SelectItem value="Annulée">Annulée</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label className="">Statut de la commande :</Label>
+                        <Label className="text-md font-normal"> {tempStatus}</Label>
                       </div>
                     </div>
                   </div>
