@@ -26,6 +26,7 @@ export default function ProductsManagement() {
   const [bulkCategoryId, setBulkCategoryId] = useState("");
   const [productFilterCategory, setProductFilterCategory] = useState("all");
   const [productFilterStatus, setProductFilterStatus] = useState("all");
+  const [productSortOrder, setProductSortOrder] = useState("default");
   const [productFormData, setProductFormData] = useState({
     name: "",
     price: "",
@@ -219,6 +220,18 @@ export default function ProductsManagement() {
               <SelectItem value="inactive">Inactif</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={productSortOrder} onValueChange={setProductSortOrder}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tri" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Plus récent</SelectItem>
+              <SelectItem value="name-asc">Nom (A-Z)</SelectItem>
+              <SelectItem value="name-desc">Nom (Z-A)</SelectItem>
+              <SelectItem value="price-asc">Prix croissant</SelectItem>
+              <SelectItem value="price-desc">Prix décroissant</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <Button onClick={() => handleOpenProductDialog()} className="bg-gradient-to-r from-[#E0A890] to-[#C98F75] hover:from-[#C98F75] hover:to-[#B07E64] text-white">
           <Plus className="w-4 h-4 mr-2" />
@@ -324,6 +337,17 @@ export default function ProductsManagement() {
                     if (productFilterStatus === "active" && product.active === false) return false;
                     if (productFilterStatus === "inactive" && product.active !== false) return false;
                     return true;
+                  }).sort((a, b) => {
+                    if (productSortOrder === "name-asc") {
+                      return (a.name || "").localeCompare(b.name || "");
+                    } else if (productSortOrder === "name-desc") {
+                      return (b.name || "").localeCompare(a.name || "");
+                    } else if (productSortOrder === "price-asc") {
+                      return (a.price || 0) - (b.price || 0);
+                    } else if (productSortOrder === "price-desc") {
+                      return (b.price || 0) - (a.price || 0);
+                    }
+                    return 0;
                   }).map(product => {
                     const category = categories.find(c => c.id === product.category_id);
                     const isChristmas = product.is_christmas === true || category?.is_christmas === true;
