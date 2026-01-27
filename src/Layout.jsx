@@ -144,57 +144,116 @@ export default function Layout({ children, currentPageName }) {
           }
 
           .dark-mode {
-            --color-primary: #1a1a1a;
-            --color-primary-dark: #0a0a0a;
-            --color-secondary: #2d2d2d;
-            --color-accent: #404040;
+            --color-primary: #D4A574;
+            --color-primary-dark: #C99668;
+            --color-secondary: #2a2a2a;
+            --color-accent: #3a3a3a;
           }
 
           .dark-mode body,
           .dark-mode .min-h-screen {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%) !important;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #141414 100%) !important;
           }
 
           .dark-mode .bg-white,
           .dark-mode .bg-white\/90,
-          .dark-mode .bg-white\/80 {
-            background-color: #1a1a1a !important;
-            color: #ffffff !important;
+          .dark-mode .bg-white\/80,
+          .dark-mode .bg-white\/60 {
+            background-color: rgba(26, 26, 26, 0.95) !important;
+            backdrop-filter: blur(12px) !important;
+            color: #f5f5f5 !important;
+            border-color: rgba(74, 74, 74, 0.3) !important;
           }
 
           .dark-mode .text-gray-800,
           .dark-mode .text-gray-900 {
-            color: #f0f0f0 !important;
+            color: #f5f5f5 !important;
+          }
+
+          .dark-mode .text-gray-700 {
+            color: #e0e0e0 !important;
           }
 
           .dark-mode .text-gray-600 {
-            color: #b0b0b0 !important;
+            color: #b8b8b8 !important;
           }
 
           .dark-mode .text-gray-500 {
-            color: #909090 !important;
+            color: #9a9a9a !important;
+          }
+
+          .dark-mode .text-gray-400 {
+            color: #6a6a6a !important;
+          }
+
+          .dark-mode .text-gray-300 {
+            color: #5a5a5a !important;
           }
 
           .dark-mode .border-\\[\\#DFD3C3\\]\\/30,
-          .dark-mode .border-\\[\\#DFD3C3\\]\\/20 {
-            border-color: #404040 !important;
+          .dark-mode .border-\\[\\#DFD3C3\\]\\/20,
+          .dark-mode .border {
+            border-color: rgba(74, 74, 74, 0.3) !important;
           }
 
-          .dark-mode .bg-gradient-to-br.from-\\[\\#FBF8F3\\] {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%) !important;
+          .dark-mode .bg-gradient-to-br.from-\\[\\#FBF8F3\\],
+          .dark-mode .bg-gradient-to-br.from-gray-50 {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #141414 100%) !important;
           }
 
-          .dark-mode .bg-gradient-to-r.from-\\[\\#F8EDE3\\],
+          .dark-mode .bg-gradient-to-r.from-\\[\\#F8EDE3\\] {
+            background: linear-gradient(90deg, rgba(212, 165, 116, 0.1) 0%, rgba(26, 26, 26, 0.95) 100%) !important;
+          }
+
           .dark-mode .bg-gradient-to-r.from-\\[\\#E0A890\\] {
-            background: linear-gradient(90deg, #2d2d2d 0%, #404040 100%) !important;
+            background: linear-gradient(90deg, #D4A574 0%, #C99668 100%) !important;
           }
 
-          .dark-mode .hover\\:bg-\\[\\#E0A890\\]\\/10:hover {
-            background-color: rgba(64, 64, 64, 0.3) !important;
+          .dark-mode .bg-\\[\\#F8EDE3\\]\\/50,
+          .dark-mode .bg-\\[\\#F8EDE3\\]\\/30,
+          .dark-mode .bg-\\[\\#F8EDE3\\]\\/20 {
+            background-color: rgba(42, 42, 42, 0.4) !important;
+          }
+
+          .dark-mode .hover\\:bg-\\[\\#E0A890\\]\\/10:hover,
+          .dark-mode .hover\\:bg-\\[\\#F8EDE3\\]\\/20:hover {
+            background-color: rgba(212, 165, 116, 0.15) !important;
           }
 
           .dark-mode .bg-\\[\\#E0A890\\]\\/20 {
-            background-color: rgba(64, 64, 64, 0.4) !important;
+            background-color: rgba(212, 165, 116, 0.2) !important;
+          }
+
+          .dark-mode .bg-\\[\\#DFD3C3\\]\\/20 {
+            background-color: rgba(58, 58, 58, 0.3) !important;
+          }
+
+          .dark-mode .text-\\[\\#C98F75\\] {
+            color: #D4A574 !important;
+          }
+
+          .dark-mode input,
+          .dark-mode textarea,
+          .dark-mode select {
+            background-color: #1f1f1f !important;
+            color: #f5f5f5 !important;
+            border-color: rgba(74, 74, 74, 0.4) !important;
+          }
+
+          .dark-mode input::placeholder,
+          .dark-mode textarea::placeholder {
+            color: #6a6a6a !important;
+          }
+
+          .dark-mode .shadow,
+          .dark-mode .shadow-lg,
+          .dark-mode .shadow-xl {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+          }
+
+          .dark-mode [data-state="active"] {
+            background-color: rgba(212, 165, 116, 0.2) !important;
+            color: #D4A574 !important;
           }
         `}</style>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-[#FBF8F3] to-[#F8EDE3]">
