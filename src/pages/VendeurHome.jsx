@@ -86,8 +86,12 @@ export default function VendeurHome() {
     setEditingOrderLines(lines);
   };
 
+  const userShopId = user?.assigned_shop_id;
+  const userShop = shops.find(s => s.id === userShopId);
+
   const filteredOrders = orders.filter(order => 
     order.pickup_date === selectedDate &&
+    order.shop_id === userShopId &&
     order.status !== 'Annulée'
   );
 
@@ -112,7 +116,9 @@ export default function VendeurHome() {
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
             Commandes à retirer
           </h1>
-          <p className="text-gray-600 text-lg">Toutes les boutiques</p>
+          {userShop && (
+            <p className="text-gray-600 text-lg">Boutique : <span className="font-semibold">{userShop.name}</span></p>
+          )}
         </div>
 
         <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
@@ -190,41 +196,29 @@ export default function VendeurHome() {
           </Card>
         </div>
 
-        <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
-          <CardContent className="p-6">
-            {pendingOrders.length === 0 ? (
-              <div className="text-center py-8">
-                <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
-                <p className="text-gray-500">Toutes les commandes ont été récupérées</p>
-              </div>
-            ) : (
+        {pendingOrders.length > 0 && (
+          <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm mb-6">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-4 text-orange-700">
+                En attente ({pendingOrders.length})
+              </h2>
               <div className="space-y-3">
                 {pendingOrders.map(order => {
                   const lines = getOrderProducts(order.id);
-                  const orderShop = shops.find(s => s.id === order.shop_id);
                   return (
                     <Card key={order.id} className="border-[#DFD3C3]/30 hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <Checkbox
-                            id={`order-${order.id}`}
-                            checked={false}
-                            onCheckedChange={() => markAsPickedUp(order)}
-                            className="mt-1 h-6 w-6"
-                          />
-                          <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0 w-full">
                             <div className="flex flex-wrap items-center gap-2 mb-2">
-                              <span className="font-mono font-bold text-xl text-[#C98F75]">
+                              <span className="font-mono font-semibold text-lg text-[#C98F75]">
                                 #{order.order_number}
                               </span>
                               {order.status === 'Enregistrée (modifiée)' && (
                                 <Badge className="bg-orange-100 text-orange-800">Modifiée</Badge>
                               )}
-                              <Badge variant="outline" className="text-xs">
-                                {orderShop?.name || 'Boutique inconnue'}
-                              </Badge>
                             </div>
-                            <p className="text-lg font-bold mb-1">
+                            <p className="text-lg font-semibold mb-1">
                               {order.customer_firstname} {order.customer_name}
                             </p>
                             <p className="text-sm text-gray-600 flex items-center gap-1 mb-3">
@@ -242,23 +236,33 @@ export default function VendeurHome() {
                               {order.total_amount.toFixed(2)} €
                             </p>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewDetails(order)}
-                            className="border-[#DFD3C3]"
-                          >
-                            Détails
-                          </Button>
+                          <div className="flex flex-col gap-2 w-full sm:w-auto">
+                            <Button
+                              size="lg"
+                              onClick={() => markAsPickedUp(order)}
+                              className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+                            >
+                              <CheckCircle2 className="w-5 h-5 mr-2" />
+                              Récupérée
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewDetails(order)}
+                              className="border-[#DFD3C3] w-full sm:w-auto"
+                            >
+                              Détails
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
                   );
                 })}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {completedOrders.length > 0 && (
           <Card className="border-[#DFD3C3]/30 shadow-xl bg-white/90 backdrop-blur-sm">
@@ -318,11 +322,6 @@ export default function VendeurHome() {
               <div className="space-y-4">
                 <Card className="bg-gray-50 border-none">
                   <CardContent className="p-4">
-                    <div className="mb-3">
-                      <Badge variant="outline" className="text-sm">
-                        {shops.find(s => s.id === selectedOrder.shop_id)?.name || 'Boutique inconnue'}
-                      </Badge>
-                    </div>
                     <p className="text-xl font-bold mb-1">{selectedOrder.customer_firstname} {selectedOrder.customer_name}</p>
                     <div className="flex items-center gap-2 text-gray-600">
                       <Phone className="w-4 h-4" />
